@@ -1,0 +1,14 @@
+#HEADER#//Author: #AUTHORNAME#
+
+using UnityEngine;
+using Unity.Entities;
+
+namespace #NAMESPACE#
+{
+	[System.Serializable]
+	public struct #SCRIPTNAME# : IComponentData 
+	{
+	}
+
+	public class #SCRIPTNAME#Component : ComponentDataWrapper<#SCRIPTNAME#> { }
+}

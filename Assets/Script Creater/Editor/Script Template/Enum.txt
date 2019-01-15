@@ -1,0 +1,9 @@
+#HEADER#//Author: #AUTHORNAME#
+
+namespace #NAMESPACE#
+{
+	public enum #SCRIPTNAME#
+	{
+		
+	}
+}

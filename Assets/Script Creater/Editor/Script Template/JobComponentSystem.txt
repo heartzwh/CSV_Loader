@@ -1,0 +1,39 @@
+#HEADER#//Author: #AUTHORNAME#
+
+using UnityEngine;
+using Unity.Entities;
+using Unity.Jobs;
+using Unity.Collections;
+
+namespace #NAMESPACE#
+{
+    // [AlwaysUpdateSystem]
+    // [DisableAutoCreationAttribute]
+    // [UpdateInGroup(typeof(TYPE))]
+    // [UpdateBefore(typeof(TYPE))]
+    // [UpdateAfter(typeof(TYPE))]
+    // [ExecuteInEditMode]
+    public class #SCRIPTNAME#System : JobComponentSystem
+    {
+        protected override JobHandle OnUpdate (JobHandle inputDeps)
+        {
+            return inputDeps;
+        }
+        protected override void OnCreateManager (int capacity)
+        {
+
+        }
+        protected override void OnDestroyManager ()
+        {
+
+        }
+        protected override void OnStartRunning ()
+        {
+
+        }
+        protected override void OnStopRunning ()
+        {
+
+        }
+    }
+}

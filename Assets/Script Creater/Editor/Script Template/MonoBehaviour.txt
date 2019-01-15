@@ -1,0 +1,43 @@
+#HEADER#//Author: #AUTHORNAME#
+
+using UnityEngine;
+
+namespace #NAMESPACE#
+{
+	public class #SCRIPTNAME# : MonoBehaviour
+	{
+		#region event/delegate
+
+		#endregion
+
+
+		#region property
+
+		#endregion
+
+
+		#region engine method
+
+		#endregion
+
+
+		#region public method
+
+		#endregion
+
+
+		#region protected method
+
+		#endregion
+
+
+		#region private method
+
+		#endregion
+
+
+		#region static
+
+		#endregion
+	}
+}

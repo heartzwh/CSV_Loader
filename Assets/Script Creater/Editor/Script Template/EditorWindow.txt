@@ -1,0 +1,15 @@
+#HEADER#//Author: #AUTHORNAME#
+
+using UnityEngine;
+using UnityEditor;
+
+namespace #NAMESPACE#
+{
+	public class #SCRIPTNAME# : EditorWindow
+	{
+		// [MenuItem("#AUTHORNAME#/#SCRIPTNAME#")]
+		static void Open()
+		{
+		}
+	}
+}

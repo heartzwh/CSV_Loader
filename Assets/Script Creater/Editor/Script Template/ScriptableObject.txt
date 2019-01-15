@@ -1,0 +1,45 @@
+#HEADER#//Author: #AUTHORNAME#
+
+using UnityEngine;
+
+namespace #NAMESPACE#
+{
+	// [CreateAssetMenu(menuName = "PATH", fileName = "DEFAULT", order = 1)]
+	// [System.Serializable]
+	public class #SCRIPTNAME# : ScriptableObject
+	{
+		#region event/delegate
+
+		#endregion
+
+
+		#region property
+
+		#endregion
+
+
+		#region engine method
+
+		#endregion
+
+
+		#region public method
+
+		#endregion
+
+
+		#region protected method
+
+		#endregion
+
+
+		#region private method
+
+		#endregion
+
+
+		#region static
+
+		#endregion
+	}
+}

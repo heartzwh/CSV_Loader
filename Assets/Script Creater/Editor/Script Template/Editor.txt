@@ -1,0 +1,15 @@
+#HEADER#//Author: #AUTHORNAME#
+
+using UnityEngine;
+using UnityEditor;
+
+namespace #NAMESPACE#
+{
+	public class #SCRIPTNAME#Editor : Editor
+	{
+		public override void OnInspectorGUI()
+		{
+			base.OnInspectorGUI();
+		}
+	}
+}

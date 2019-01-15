@@ -1,0 +1,40 @@
+#HEADER#//Author: #AUTHORNAME#
+
+using UnityEngine;
+using Unity.Entities;
+
+namespace #NAMESPACE#
+{
+    // [AlwaysUpdateSystem]
+    // [DisableAutoCreationAttribute]
+    // [UpdateInGroup(typeof(TYPE))]
+    // [UpdateBefore(typeof(TYPE))]
+    // [UpdateAfter(typeof(TYPE))]
+    // [ExecuteInEditMode]
+    public class #SCRIPTNAME#System : ComponentSystem
+    {
+        protected override void OnUpdate ()
+        {
+
+        }
+
+        protected override void OnCreateManager (int capacity)
+        {
+
+        }
+
+        protected override void OnDestroyManager ()
+        {
+
+        }
+        protected override void OnStartRunning ()
+        {
+
+        }
+
+        protected override void OnStopRunning ()
+        {
+
+        }
+    }
+}
