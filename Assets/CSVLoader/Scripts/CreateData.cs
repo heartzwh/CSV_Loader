@@ -17,7 +17,7 @@ namespace Sora.Tools.CSVLoader
     /// <summary>
     /// 创建信息
     /// </summary>
-    public struct CreateData
+    public class CreateData
     {
         /// <summary>
         /// 文件位置(csv文件位置)
@@ -35,5 +35,10 @@ namespace Sora.Tools.CSVLoader
         /// 资源文件位置(选择保存位置)
         /// </summary>
         public string resourceFilePath;
+        public int createIndex;
+        public CreateData(int createIndex)
+        {
+            this.createIndex = createIndex;
+        }
     }
 }
