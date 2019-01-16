@@ -123,7 +123,9 @@ namespace Sora.Tools.CSVLoader
                         var scriptRect = new Rect(inputArea.x, inputHeight, fieldWidth, LINE_HEIGHT);
                         var scriptButtonRect = new Rect(scriptRect.xMax + Margin, inputHeight, buttonWidth, BUTTON_HEIGHT);
                         var fileInfo = new FileInfo(data.loadFilePath);
-                        data.scriptNameSpace = EditorGUI.TextField(scriptRect, "namespace", data.scriptNameSpace);
+                        EditorGUI.BeginDisabledGroup(true);
+                        EditorGUI.TextField(scriptRect, "脚本路径", data.scriptFilePath);
+                        EditorGUI.EndDisabledGroup();
                         if (GUI.Button(scriptButtonRect, "脚本路径"))
                         {
                             var saveScriptFilePath = EditorUtility.SaveFilePanel("保存脚本", "", $"{fileInfo.Name.Split('.')[0]}.cs", "cs");
