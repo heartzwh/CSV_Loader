@@ -27,7 +27,7 @@ namespace Sora.Tools.CSVLoader
         /// <summary>
         /// 预览窗口最小宽度
         /// </summary>
-        private const float previewMinWidth = 400f;
+        private const float previewMinWidth = 300f;
         /// <summary>
         /// 边距
         /// </summary>
@@ -41,7 +41,11 @@ namespace Sora.Tools.CSVLoader
         /// <returns></returns>
         private HashSet<string> loadedFilePath = new HashSet<string>();
         private Vector2 inputScrollPosition;
+        private Vector2 previewScrollPosition;
         private float inputHeight;
+        private string previewScriptContent;
+        private float previewHeight;
+        private float previewSaveHeight;
         [MenuItem("Sora/Tools/CSVLoader")]
         static void Open()
         {
@@ -53,6 +57,7 @@ namespace Sora.Tools.CSVLoader
         private void OnEnable()
         {
             createDataMap = new Dictionary<int, CreateData>();
+            previewScriptContent = string.Empty;
         }
         private void OnGUI()
         {
@@ -63,10 +68,18 @@ namespace Sora.Tools.CSVLoader
             EditorGUI.DrawRect(splitLineArea, new Color(0, 0, 0, 0.6f));
             var scrollViewOffsetHeight = 10f;
             var scrollRect = new Rect(inputArea.x, inputArea.y, inputArea.width, inputArea.height - Margin - splitLineWidth - BUTTON_HEIGHT);
-            var scrollViewRect = new Rect(inputArea.x, inputArea.y - scrollViewOffsetHeight, inputArea.width, createDataMap.Count * LINE_HEIGHT + scrollViewOffsetHeight);
+            var scrollViewRect = new Rect(inputArea.x, inputArea.y - scrollViewOffsetHeight, inputArea.width, inputHeight);
             inputScrollPosition = GUI.BeginScrollView(scrollRect, inputScrollPosition, scrollViewRect, false, false, GUIStyle.none, GUIStyle.none);
             inputHeight = 0f;
-            foreach (var data in createDataMap.Values)
+            var dataIndex = 0;
+            var dataCopy = new List<CreateData>(createDataMap.Values);
+            dataCopy.Sort((x, y) =>
+            {
+                if (x.createIndex > y.createIndex) return -1;
+                else if (x.createIndex < y.createIndex) return 1;
+                else return 0;
+            });
+            foreach (var data in dataCopy)
             {
                 var buttonWidth = 80f;
                 var fieldWidth = inputArea.width * .8f;
@@ -75,7 +88,7 @@ namespace Sora.Tools.CSVLoader
                 var foldoutTitle = "未选择文件";
                 if (!string.IsNullOrEmpty(data.loadFilePath))
                 {
-                    foldoutTitle = new FileInfo(data.loadFilePath).Name.Split('.')[0];
+                    foldoutTitle = $"{new FileInfo(data.loadFilePath).Name.Split('.')[0]}[{data.loadFilePath}]";
                 }
                 data.foldout = EditorGUI.Foldout(foldoutRect, data.foldout, foldoutTitle, true);
                 if (GUI.Button(removeButtonRect, "x"))
@@ -95,14 +108,17 @@ namespace Sora.Tools.CSVLoader
                     if (GUI.Button(filePathButtonRect, "选择CSV"))
                     {
                         var selectedPath = EditorUtility.OpenFilePanelWithFilters("选择文件", "", new string[] { "CSV文件", "csv" });
-                        if (loadedFilePath.Contains(selectedPath))
+                        if (!string.IsNullOrEmpty(selectedPath))
                         {
-                            Debug.LogError("文件已经被加载");
-                            continue;
+                            if (loadedFilePath.Contains(selectedPath))
+                            {
+                                Debug.LogError("文件已经被加载");
+                                continue;
+                            }
+                            var saveFilePath = data.loadFilePath;
+                            if (!string.IsNullOrEmpty(saveFilePath) && loadedFilePath.Contains(saveFilePath)) loadedFilePath.Remove(saveFilePath);
+                            data.loadFilePath = selectedPath;
                         }
-                        var saveFilePath = data.loadFilePath;
-                        if (!string.IsNullOrEmpty(saveFilePath) && loadedFilePath.Contains(saveFilePath)) loadedFilePath.Remove(saveFilePath);
-                        data.loadFilePath = selectedPath;
                     }
                     AddHeight(1);
                     EditorGUI.BeginDisabledGroup(true);
@@ -113,7 +129,7 @@ namespace Sora.Tools.CSVLoader
                     EditorGUI.BeginDisabledGroup(string.IsNullOrEmpty(data.loadFilePath));
                     if (GUI.Button(previewButtonRect, "预览脚本"))
                     {
-                        PreviewScript(data);
+                        previewScriptContent = data.scriptContent;
                     }
                     EditorGUI.EndDisabledGroup();
                     AddHeight(0);
@@ -146,6 +162,14 @@ namespace Sora.Tools.CSVLoader
                     }
                     EditorGUI.indentLevel--;
                 }
+                if (dataIndex < dataCopy.Count - 1)
+                {
+                    AddSpace();
+                    splitLineArea = new Rect(inputArea.x, inputHeight, inputArea.width, 1);
+                    EditorGUI.DrawRect(splitLineArea, new Color(0, 0, 0, 0.6f));
+                    AddSpace(4);
+                }
+                dataIndex++;
             }
             GUI.EndScrollView();
             AddSpace(10);
@@ -173,20 +197,24 @@ namespace Sora.Tools.CSVLoader
             #endregion 输入区域
 
             #region 预览区域
-            var previewArea = new Rect(inputMinWidth + Margin / 2, Margin / 2, position.width - inputMinWidth - Margin, position.height - Margin);
-            EditorGUI.DrawRect(previewArea, new Color(0, 0, 0, 0.4f));
+            if (!string.IsNullOrEmpty(previewScriptContent))
+            {
+                if (previewHeight < previewSaveHeight) previewHeight = previewSaveHeight;
+                else previewSaveHeight = previewHeight;
+                var previewRect = new Rect(inputMinWidth + Margin / 2, Margin / 2, position.width - inputMinWidth - Margin, position.height - Margin);
+                GUILayout.BeginArea(previewRect);
+                var previewScrollRect = new Rect(0, 0, previewRect.width, previewRect.height);
+                var previewScrollViewRect = new Rect(0, 0, previewScrollRect.width, previewHeight);
+                previewScrollPosition = GUI.BeginScrollView(previewScrollRect, previewScrollPosition, previewScrollViewRect, false, false, GUIStyle.none, GUIStyle.none);
+                EditorGUI.BeginDisabledGroup(true);
+                EditorGUILayout.TextArea(previewScriptContent);
+                EditorGUI.EndDisabledGroup();
+                previewHeight = GUILayoutUtility.GetLastRect().yMax;
+                GUI.EndScrollView();
+                GUILayout.EndArea();
+            }
             #endregion 预览区域
         }
-
-        /// <summary>
-        /// 预览脚本
-        /// </summary>
-        /// <param name="data"></param>
-        private void PreviewScript(CreateData data)
-        {
-
-        }
-
         private void AddHeight(int space)
         {
             inputHeight += LINE_HEIGHT;

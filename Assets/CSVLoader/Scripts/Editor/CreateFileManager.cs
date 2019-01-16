@@ -80,6 +80,7 @@ namespace Sora.Tools.CSVLoader
             scriptContent.AppendLine($"{GetTab(tabCount)}public class #CLASS_NAME#");
             scriptContent.AppendLine(GetTab(tabCount) + "{");
             tabCount++;
+            var propertyIndex = 0;
             foreach (var property in scriptProperty)
             {
                 var data = property.Split(SETTING_SPLIT);
@@ -89,20 +90,11 @@ namespace Sora.Tools.CSVLoader
                 var propertyNameType = data[1];
                 if (!propertyValibleSet.Contains(propertyNameType))
                 {
-                }
-                /* 属性注释 */
-                var propertyComment = data[2];
-                if (!string.IsNullOrEmpty(propertyComment))
-                {
-                    scriptContent.AppendLine($"{GetTab(tabCount)}/// <summary>");
-                    foreach (var comment in propertyComment.Split(new string[] { "\r\n" }, System.StringSplitOptions.None))
-                    {
-                        scriptContent.AppendLine($"{GetTab(tabCount)}/// {comment}");
-                    }
-                    scriptContent.AppendLine($"{GetTab(tabCount)}/// </summary>");
+                    throw new System.Exception($"包含未定义类型{propertyNameType}");
                 }
                 scriptContent.AppendLine($"{GetTab(tabCount)}public {propertyNameType} {propertyName}");
-                scriptContent.AppendLine();
+                if (propertyIndex < scriptProperty.Count - 1) scriptContent.AppendLine();
+                propertyIndex++;
             }
             tabCount--;
             scriptContent.AppendLine(GetTab(tabCount) + "}");

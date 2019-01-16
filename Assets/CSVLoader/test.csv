@@ -1,0 +1,5 @@
+@start,abc.abc.classname,,,
+string#name,int#count,array2d;string;3#description,,
+a,1,a1,a2,a3
+b,2,b1,b2,b3
+@end,,,,
