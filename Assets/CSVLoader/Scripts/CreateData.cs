@@ -74,6 +74,8 @@ namespace Sora.Tools.CSVLoader
         private void GenerateScriptContent()
         {
             初始化scriptContent
+
+
             
             var fileStream = new FileStream(loadFilePath, FileMode.Open, FileAccess.Read);
             var streamReader = new StreamReader(fileStream);
