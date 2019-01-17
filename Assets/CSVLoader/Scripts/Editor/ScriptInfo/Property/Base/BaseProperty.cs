@@ -27,28 +27,24 @@ namespace Sora.Tools.CSVLoader
 
         public string propertyContent { get; private set; }
 
+        public string propertyName { get; private set; }
         #endregion
 
 
         #region public method
-        public virtual void InitProperty(RawData sourceData)
+        public virtual void InitProperty(string[] propertySetting, RawData sourceData)
         {
-            /* sourceData 包含该属性所有值 */
             rawData = sourceData;
-            /* [0,0]填写了该属性的定义 */
-            type = GetPropertyType(rawData[0, 0]);
+            propertyName = propertySetting[1];
+            type = GetPropertyType();
+            propertyContent = $"public {type.FullName} {propertyName};";
         }
         public abstract void DrawProperty(float x, float y, ref float width, ref float height);
         #endregion
 
 
         #region protected method
-        /// <summary>
-        /// 获取属性类型
-        /// </summary>
-        /// <param name="rowData">原始数据</param>
-        /// <returns></returns>
-        protected abstract Type GetPropertyType(string rowData);
+        protected abstract Type GetPropertyType();
         #endregion
 
 

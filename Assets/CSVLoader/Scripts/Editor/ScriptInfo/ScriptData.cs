@@ -86,7 +86,6 @@ namespace Sora.Tools.CSVLoader
                 if (!valiblePropertySet.Contains(propertyData[0])) throw new System.Exception($"未包含属性{propertyData[0]}");
                 var property = default(IProperty);
                 var range = new RawRange(1, columnIndex, 1, scriptRawData.height - 1);
-                UnityEngine.Debug.Log(propertyData[0]);
                 switch (propertyData[0])
                 {
                     case "int":
@@ -103,8 +102,51 @@ namespace Sora.Tools.CSVLoader
                         break;
                     default: throw new System.Exception($"为定义类型\"{propertyData[0]}\"");
                 }
-                property.InitProperty(scriptRawData.GetRangeRawData(range));
+                property.InitProperty(propertyData, scriptRawData.GetRangeRawData(range));
+                propertyList.Add(property);
             }
+            GenerateScriptContent();
+        }
+
+        private void GenerateScriptContent()
+        {
+            var scriptContent = new System.Text.StringBuilder();
+            var tabCount = 0;
+            /* 脚本设置 */
+            if (!string.IsNullOrEmpty(scriptSetting.namespaceName))
+            {
+                scriptContent.AppendLine($"{GetTab(tabCount)}namespace {scriptSetting.namespaceName}");
+                scriptContent.AppendLine(GetTab(tabCount) + "{");
+                tabCount++;
+            }
+            /* 脚本属性 */
+            scriptContent.AppendLine($"{GetTab(tabCount)}public class {scriptSetting.scriptName}");
+            scriptContent.AppendLine(GetTab(tabCount) + "{");
+            tabCount++;
+            var propertyIndex = 0;
+            foreach (var property in propertyList)
+            {
+                scriptContent.AppendLine($"{GetTab(tabCount)}{property.propertyContent}");
+                if (propertyIndex < propertyList.Count - 1) scriptContent.AppendLine();
+                propertyIndex++;
+            }
+            tabCount--;
+            scriptContent.AppendLine(GetTab(tabCount) + "}");
+            if (!string.IsNullOrEmpty(scriptSetting.namespaceName))
+            {
+                tabCount--;
+                scriptContent.AppendLine(GetTab(tabCount) + "}");
+            }
+            this.scriptContent = scriptContent.ToString();
+        }
+        private string GetTab(int count)
+        {
+            var tabStr = "";
+            for (int i = 0; i < count; i++)
+            {
+                tabStr += "    ";
+            }
+            return tabStr;
         }
         #endregion
 

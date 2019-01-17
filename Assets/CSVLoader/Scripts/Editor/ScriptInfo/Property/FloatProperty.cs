@@ -29,7 +29,8 @@ namespace Sora.Tools.CSVLoader
 
 
         #region protected method
-        protected override Type GetPropertyType(string rowData) => typeof(float);
+        protected override Type GetPropertyType() => typeof(float);
+        
         #endregion
 
 

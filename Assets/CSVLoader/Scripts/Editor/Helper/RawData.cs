@@ -17,13 +17,20 @@ namespace Sora.Tools.CSVLoader
         /// <param name="sourceData">csv表数据</param>
         public RawData(string sourceData)
         {
-            var lineData = sourceData.Split(new string[] { "\r\n" }, System.StringSplitOptions.None);
+            /* windows/mac分隔符不一样,如果数据解析出错,查看是否没有添加对应编辑器的分隔符 */
+            var lineData = sourceData.Split(new string[] { "\r\n", "\r", "\n" }, System.StringSplitOptions.None);
             height = lineData.Length;
             if (string.IsNullOrWhiteSpace(lineData[lineData.Length - 1])) height--;
-            width = lineData[0].Count(c => c.Equals(GenerateData.SPLIT)) + 1;
-
+            foreach (var line in lineData)
+            {
+                /* 找到最宽的数据作为宽度 */
+                var currentWidth = line.Count(c => c.Equals(GenerateData.SPLIT)) + 1;
+                if (currentWidth > width)
+                {
+                    width = currentWidth;
+                }
+            }
             rowData = new string[width, height];
-
             for (var y = 0; y < height; y++)
             {
                 var line = lineData[y].Split(GenerateData.SPLIT);
@@ -65,7 +72,7 @@ namespace Sora.Tools.CSVLoader
                 }
                 catch
                 {
-                    throw new System.Exception($"超过范围.x=>{rowData.GetLength(0)},y=>{rowData.GetLength(1)}");
+                    throw new System.Exception($"\"[{x},{y}]\"超过范围.width: {rowData.GetLength(0)},height: {rowData.GetLength(1)}");
                 }
             }
         }

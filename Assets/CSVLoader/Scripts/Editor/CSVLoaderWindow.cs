@@ -88,7 +88,7 @@ namespace Sora.Tools.CSVLoader
                 var foldoutTitle = "未选择文件";
                 if (!string.IsNullOrEmpty(data.loadFilePath))
                 {
-                    foldoutTitle = data.scriptData.scriptSetting.scriptName;
+                    foldoutTitle = $"{data.fileInfo.Name}[{data.scriptData.scriptSetting.scriptFullname}]";
                 }
                 data.foldout = EditorGUI.Foldout(foldoutRect, data.foldout, foldoutTitle, true);
                 if (GUI.Button(removeButtonRect, "x"))

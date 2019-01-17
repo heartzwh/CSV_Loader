@@ -16,6 +16,11 @@ namespace Sora.Tools.CSVLoader
         /// <value></value>
         Type type { get; }
         /// <summary>
+        /// 属性名称
+        /// </summary>
+        /// <value></value>
+        string propertyName { get; }
+        /// <summary>
         /// 属性原始数据
         /// </summary>
         /// <value></value>
@@ -30,8 +35,9 @@ namespace Sora.Tools.CSVLoader
         /// <summary>
         /// 初始化属性
         /// </summary>
+        /// <param name="propertySetting">属性设置</param>
         /// <param name="sourceData">csv表数据</param>
-        void InitProperty(RawData sourceData);
+        void InitProperty(string[] propertySetting, RawData sourceData);
         /// <summary>
         /// editor 显示
         /// </summary>
