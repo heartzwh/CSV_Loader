@@ -1,1 +1,1 @@
-D:/Sora_Workspace/Project/Unity/CSV_Loader/Assets\CSVLoader/Scripts/Editor/ScriptInfo
+/Users/heartsora/Desktop/Sora_WorkSpace/Unity/CSV_Loader/Assets/CSVLoader/Scripts/Editor/ScriptAsset

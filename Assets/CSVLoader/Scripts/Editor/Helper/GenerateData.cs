@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Sora.Tools.CSVLoader
@@ -56,11 +57,32 @@ namespace Sora.Tools.CSVLoader
         /// <value></value>
         public ScriptData scriptData { get; private set; }
         public FileInfo fileInfo { get; private set; }
+        /// <summary>
+        /// 块颜色
+        /// </summary>
+        public Color blockColor = NORMALR_COLOR;
+        /// <summary>
+        /// 块高度
+        /// </summary>
+        public float blockHeight;
+
         private string m_loadFilePath;
 
         public GenerateData(int createIndex)
         {
             this.createIndex = createIndex;
+        }
+
+        /// <summary>
+        /// 清除块颜色
+        /// </summary>
+        /// <param name="delayTime"></param>
+        /// <returns></returns>
+        public async void ClearColor(float delayTime = 1.5f)
+        {
+            await Task.Yield();
+            await Task.Delay(System.TimeSpan.FromSeconds(delayTime));
+            blockColor = NORMALR_COLOR;
         }
 
         /// <summary>
@@ -98,5 +120,7 @@ namespace Sora.Tools.CSVLoader
         public const string START_MARK = "@start";
         public const string END_MARK = "@end";
         public const char SETTING_SPLIT = '#';
+        public static Color ERROR_COLOR = new Color(255, 0, 0, 0.5f);
+        public static Color NORMALR_COLOR = Color.clear;
     }
 }

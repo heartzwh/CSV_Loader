@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using UnityEngine;
 
 namespace Sora.Tools.CSVLoader
 {
@@ -22,6 +24,12 @@ namespace Sora.Tools.CSVLoader
         {
             this.generateData = generateData;
             scriptSetting = new ScriptSetting(this, rawScriptSetting);
+            if (CheckHaveSameScript())
+            {
+                generateData.blockColor = GenerateData.ERROR_COLOR;
+                generateData.ClearColor();
+                return;
+            }
             propertyList = new List<IProperty>();
             scriptRawData = new RawData(rawDataSource);
             if (scriptRawData.width <= 0 || scriptRawData.height <= 0) throw new System.Exception($"{generateData.fileInfo.Name}信息缺失");
@@ -63,7 +71,21 @@ namespace Sora.Tools.CSVLoader
 
 
         #region public method
-
+        public void GenerateScript()
+        {
+            var savePath = string.Format("{1}{0}{2}.cs", Seperator(), generateData.scriptFilePath, scriptSetting.scriptName);
+            if (File.Exists(savePath))
+            {
+                Debug.LogError($"文件\"{scriptSetting.scriptName}\"已存在");
+                generateData.blockColor = GenerateData.ERROR_COLOR;
+                generateData.ClearColor();
+                return;
+            }
+            StreamWriter sw = File.CreateText(savePath);
+            sw.Write(scriptContent);
+            sw.Flush();
+            sw.Close();
+        }
         #endregion
 
 
@@ -139,6 +161,20 @@ namespace Sora.Tools.CSVLoader
             }
             this.scriptContent = scriptContent.ToString();
         }
+        private bool CheckHaveSameScript()
+        {
+            var haveSame = false;
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                if (assembly.GetType(scriptSetting.scriptFullname) != null)
+                {
+                    UnityEngine.Debug.LogError($"类\"{scriptSetting.scriptFullname}\"已存在");
+                    haveSame = true;
+                    break;
+                }
+            }
+            return haveSame;
+        }
         private string GetTab(int count)
         {
             var tabStr = "";
@@ -147,6 +183,16 @@ namespace Sora.Tools.CSVLoader
                 tabStr += "    ";
             }
             return tabStr;
+        }
+        private static char Seperator()
+        {
+            char separator = '/';
+#if UNITY_STANDALONE_OSX
+            separator = '/';
+#elif UNITY_STANDALONE_WIN
+            separator = '\\';
+#endif
+            return separator;
         }
         #endregion
 

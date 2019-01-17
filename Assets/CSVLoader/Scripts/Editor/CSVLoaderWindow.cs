@@ -81,6 +81,12 @@ namespace Sora.Tools.CSVLoader
             });
             foreach (var data in dataCopy)
             {
+                if (!data.blockHeight.Equals(0))
+                {
+                    var blockRect = new Rect(inputArea.x, inputHeight, inputArea.width, data.blockHeight);
+                    EditorGUI.DrawRect(blockRect, data.blockColor);
+                }
+                var recordHeight = inputHeight;
                 var buttonWidth = 80f;
                 var fieldWidth = inputArea.width * .8f;
                 var foldoutRect = new Rect(inputArea.x, inputHeight, fieldWidth, LINE_HEIGHT);
@@ -145,7 +151,7 @@ namespace Sora.Tools.CSVLoader
                         EditorGUI.EndDisabledGroup();
                         if (GUI.Button(scriptButtonRect, "脚本路径"))
                         {
-                            var saveScriptFilePath = EditorUtility.SaveFilePanel("保存脚本", "", $"{fileInfo.Name.Split('.')[0]}.cs", "cs");
+                            var saveScriptFilePath = EditorUtility.SaveFolderPanel("保存脚本位置", "", "");
                             data.scriptFilePath = saveScriptFilePath;
                         }
                         AddHeight(1);
@@ -156,7 +162,7 @@ namespace Sora.Tools.CSVLoader
                         EditorGUI.EndDisabledGroup();
                         if (GUI.Button(resourceButtonRect, "资源路径"))
                         {
-                            var saveResourceFilePath = EditorUtility.SaveFilePanel("保存资源", data.scriptFilePath, $"{fileInfo.Name.Split('.')[0]}.cs", "cs");
+                            var saveResourceFilePath = EditorUtility.SaveFolderPanel("保存资源位置", "", "");
                             data.resourceFilePath = saveResourceFilePath;
                         }
                         AddHeight(0);
@@ -170,6 +176,7 @@ namespace Sora.Tools.CSVLoader
                     EditorGUI.DrawRect(splitLineArea, new Color(0, 0, 0, 0.6f));
                     AddSpace(4);
                 }
+                data.blockHeight = inputHeight - recordHeight;
                 dataIndex++;
             }
             GUI.EndScrollView();
@@ -191,9 +198,7 @@ namespace Sora.Tools.CSVLoader
             var createEnable = createDataMap.Count > 0;
             foreach (var data in createDataMap.Values) createEnable &= data.prepareComplete;
             EditorGUI.BeginDisabledGroup(!createEnable);
-            if (GUI.Button(generateButtonRect, "创建"))
-            {
-            }
+            if (GUI.Button(generateButtonRect, "创建")) GenerateResource();
             EditorGUI.EndDisabledGroup();
             #endregion 输入区域
 
@@ -222,7 +227,17 @@ namespace Sora.Tools.CSVLoader
             inputHeight += space;
         }
         private void AddSpace(int height = 1) => inputHeight += height;
-
+        /// <summary>
+        /// 创建资源
+        /// 脚本/ScriptObject
+        /// </summary>
+        private void GenerateResource()
+        {
+            foreach (var data in createDataMap.Values)
+            {
+                data.scriptData.GenerateScript();
+            }
+        }
         private static int CreateIndex = int.MinValue;
     }
 }
