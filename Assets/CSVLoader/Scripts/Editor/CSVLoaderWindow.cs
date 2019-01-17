@@ -18,7 +18,7 @@ namespace Sora.Tools.CSVLoader
         /// int: 创建id
         /// CreateData: 创建信息
         /// </summary>
-        private Dictionary<int, CreateData> createDataMap;
+        private Dictionary<int, GenerateData> createDataMap;
         private Vector2 miniSize;
         /// <summary>
         /// 输入窗口最小宽度
@@ -56,7 +56,7 @@ namespace Sora.Tools.CSVLoader
         }
         private void OnEnable()
         {
-            createDataMap = new Dictionary<int, CreateData>();
+            createDataMap = new Dictionary<int, GenerateData>();
             previewScriptContent = string.Empty;
         }
         private void OnGUI()
@@ -72,7 +72,7 @@ namespace Sora.Tools.CSVLoader
             inputScrollPosition = GUI.BeginScrollView(scrollRect, inputScrollPosition, scrollViewRect, false, false, GUIStyle.none, GUIStyle.none);
             inputHeight = 0f;
             var dataIndex = 0;
-            var dataCopy = new List<CreateData>(createDataMap.Values);
+            var dataCopy = new List<GenerateData>(createDataMap.Values);
             dataCopy.Sort((x, y) =>
             {
                 if (x.createIndex > y.createIndex) return -1;
@@ -88,13 +88,25 @@ namespace Sora.Tools.CSVLoader
                 var foldoutTitle = "未选择文件";
                 if (!string.IsNullOrEmpty(data.loadFilePath))
                 {
-                    foldoutTitle = $"{new FileInfo(data.loadFilePath).Name.Split('.')[0]}[{data.loadFilePath}]";
+                    foldoutTitle = data.scriptData.scriptSetting.scriptName;
                 }
                 data.foldout = EditorGUI.Foldout(foldoutRect, data.foldout, foldoutTitle, true);
                 if (GUI.Button(removeButtonRect, "x"))
                 {
-                    createDataMap.Remove(data.createIndex);
-                    break;
+                    var removeFlag = false;
+                    if (string.IsNullOrEmpty(data.loadFilePath))
+                    {
+                        removeFlag = true;
+                    }
+                    else
+                    {
+                        if (EditorUtility.DisplayDialog("删除资源", $"删除{data.fileInfo.Name}", "确定", "取消")) removeFlag = true;
+                    }
+                    if (removeFlag)
+                    {
+                        createDataMap.Remove(data.createIndex);
+                        break;
+                    }
                 }
                 inputHeight += LINE_HEIGHT;
                 if (data.foldout)
@@ -118,21 +130,10 @@ namespace Sora.Tools.CSVLoader
                             var saveFilePath = data.loadFilePath;
                             if (!string.IsNullOrEmpty(saveFilePath) && loadedFilePath.Contains(saveFilePath)) loadedFilePath.Remove(saveFilePath);
                             data.loadFilePath = selectedPath;
+                            previewScriptContent = data.scriptData.scriptContent;
                         }
                     }
                     AddHeight(1);
-                    EditorGUI.BeginDisabledGroup(true);
-                    var createTypeRect = new Rect(inputArea.x, inputHeight, fieldWidth, LINE_HEIGHT);
-                    EditorGUI.EnumPopup(createTypeRect, "数据类型", data.createType);
-                    EditorGUI.EndDisabledGroup();
-                    var previewButtonRect = new Rect(createTypeRect.xMax + Margin, inputHeight, buttonWidth, BUTTON_HEIGHT);
-                    EditorGUI.BeginDisabledGroup(string.IsNullOrEmpty(data.loadFilePath));
-                    if (GUI.Button(previewButtonRect, "预览脚本"))
-                    {
-                        previewScriptContent = data.scriptContent;
-                    }
-                    EditorGUI.EndDisabledGroup();
-                    AddHeight(0);
                     if (!string.IsNullOrEmpty(data.loadFilePath))
                     {
                         AddSpace();
@@ -184,7 +185,7 @@ namespace Sora.Tools.CSVLoader
             var generateButtonRect = new Rect(addButtonRect.xMax + Margin, splitLineArea.yMax + Margin / 2, 50, BUTTON_HEIGHT);
             if (GUI.Button(addButtonRect, "+"))
             {
-                createDataMap.Add(CreateIndex, new CreateData(CreateIndex) { foldout = true });
+                createDataMap.Add(CreateIndex, new GenerateData(CreateIndex) { foldout = true });
                 CreateIndex++;
             }
             var createEnable = createDataMap.Count > 0;

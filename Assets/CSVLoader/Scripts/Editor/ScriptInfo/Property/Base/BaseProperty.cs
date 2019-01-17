@@ -1,6 +1,7 @@
 //Author: sora
 
 using System;
+using UnityEngine;
 
 namespace Sora.Tools.CSVLoader
 {
@@ -30,13 +31,14 @@ namespace Sora.Tools.CSVLoader
 
 
         #region public method
-        public virtual void InitProperty(string sourceData)
+        public virtual void InitProperty(RawData sourceData)
         {
             /* sourceData 包含该属性所有值 */
-            rawData = new RawData(sourceData);
+            rawData = sourceData;
             /* [0,0]填写了该属性的定义 */
             type = GetPropertyType(rawData[0, 0]);
         }
+        public abstract void DrawProperty(float x, float y, ref float width, ref float height);
         #endregion
 
 

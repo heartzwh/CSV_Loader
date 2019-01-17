@@ -25,31 +25,6 @@ namespace Sora.Tools.CSVLoader
 
 
         #region public method
-        /// <summary>
-        /// 创建脚本
-        /// </summary>
-        /// <param name="createType"></param>
-        /// <param name="dataSet"></param>
-        public string GenerateScriptContent(CreateType createType, Dictionary<int, List<string>> dataSet)
-        {
-            var content = "";
-            switch (createType)
-            {
-                case CreateType.DEFAULT:
-                    content = GenerateDefaultScriptContent(dataSet);
-                    break;
-                case CreateType.ARRAY_2D:
-                    content = GenerateArray2DScriptContent(dataSet);
-                    break;
-            }
-            return content;
-        }
-        /// <summary>
-        /// 创建资源
-        /// </summary>
-        public void CreateAsset()
-        {
-        }
 
         #endregion
 
