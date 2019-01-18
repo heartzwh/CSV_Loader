@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 using System.IO;
+using Newtonsoft.Json;
 
 namespace Sora.Tools.CSVLoader
 {
@@ -18,7 +19,7 @@ namespace Sora.Tools.CSVLoader
         /// int: 创建id
         /// CreateData: 创建信息
         /// </summary>
-        private Dictionary<int, GenerateData> createDataMap;
+        private Dictionary<int, GenerateData> generateDataMap;
         private Vector2 miniSize;
         /// <summary>
         /// 输入窗口最小宽度
@@ -46,18 +47,26 @@ namespace Sora.Tools.CSVLoader
         private string previewScriptContent;
         private float previewHeight;
         private float previewSaveHeight;
+        private GUIStyle previewTextAreaStyle;
+        private const string saveCreateDataPath = "CSVLoader/Scripts/Editor/CreateDataMap";
         [MenuItem("Sora/Tools/CSVLoader")]
         static void Open()
         {
-            var window = GetWindow(typeof(CSVLoaderWindow), false, "CSV Loader", true);
+            window = GetWindow(typeof(CSVLoaderWindow), false, "CSV Loader", true) as CSVLoaderWindow;
+            window.autoRepaintOnSceneChange = false;
+            window.wantsMouseMove = false;
             window.Show();
             window.minSize = new Vector2(inputMinWidth + previewMinWidth + Margin, (inputMinWidth + Margin + previewMinWidth) * .75f);
             window.maxSize = window.minSize;
         }
         private void OnEnable()
         {
-            createDataMap = new Dictionary<int, GenerateData>();
+            generateDataMap = new Dictionary<int, GenerateData>();
             previewScriptContent = string.Empty;
+            LoadData = false;
+
+            previewTextAreaStyle = new GUIStyle();
+            previewTextAreaStyle.wordWrap = true;
         }
         private void OnGUI()
         {
@@ -72,7 +81,7 @@ namespace Sora.Tools.CSVLoader
             inputScrollPosition = GUI.BeginScrollView(scrollRect, inputScrollPosition, scrollViewRect, false, false, GUIStyle.none, GUIStyle.none);
             inputHeight = 0f;
             var dataIndex = 0;
-            var dataCopy = new List<GenerateData>(createDataMap.Values);
+            var dataCopy = new List<GenerateData>(generateDataMap.Values);
             dataCopy.Sort((x, y) =>
             {
                 if (x.createIndex > y.createIndex) return -1;
@@ -94,7 +103,7 @@ namespace Sora.Tools.CSVLoader
                 var foldoutTitle = "未选择文件";
                 if (!string.IsNullOrEmpty(data.loadFilePath))
                 {
-                    foldoutTitle = $"{data.fileInfo.Name}[{data.scriptData.scriptSetting.scriptFullname}]";
+                    foldoutTitle = $"{data.fileInfo.Name}[{data.scriptSetting.scriptFullname}]";
                 }
                 data.foldout = EditorGUI.Foldout(foldoutRect, data.foldout, foldoutTitle, true);
                 if (GUI.Button(removeButtonRect, "x"))
@@ -110,7 +119,7 @@ namespace Sora.Tools.CSVLoader
                     }
                     if (removeFlag)
                     {
-                        createDataMap.Remove(data.createIndex);
+                        generateDataMap.Remove(data.createIndex);
                         break;
                     }
                 }
@@ -136,7 +145,12 @@ namespace Sora.Tools.CSVLoader
                             var saveFilePath = data.loadFilePath;
                             if (!string.IsNullOrEmpty(saveFilePath) && loadedFilePath.Contains(saveFilePath)) loadedFilePath.Remove(saveFilePath);
                             data.loadFilePath = selectedPath;
-                            previewScriptContent = data.scriptData.scriptContent;
+                            var scriptContent = new System.Text.StringBuilder();
+                            scriptContent.Append(data.scriptData.scriptContent);
+                            scriptContent.AppendLine();
+                            scriptContent.AppendLine();
+                            scriptContent.Append(data.scriptAssetData.scriptContent);
+                            previewScriptContent = scriptContent.ToString();
                         }
                     }
                     AddHeight(1);
@@ -192,11 +206,11 @@ namespace Sora.Tools.CSVLoader
             var generateButtonRect = new Rect(addButtonRect.xMax + Margin, splitLineArea.yMax + Margin / 2, 50, BUTTON_HEIGHT);
             if (GUI.Button(addButtonRect, "+"))
             {
-                createDataMap.Add(CreateIndex, new GenerateData(CreateIndex) { foldout = true });
+                generateDataMap.Add(CreateIndex, new GenerateData(CreateIndex) { foldout = true });
                 CreateIndex++;
             }
-            var createEnable = createDataMap.Count > 0;
-            foreach (var data in createDataMap.Values) createEnable &= data.prepareComplete;
+            var createEnable = generateDataMap.Count > 0;
+            foreach (var data in generateDataMap.Values) createEnable &= data.prepareComplete;
             EditorGUI.BeginDisabledGroup(!createEnable);
             if (GUI.Button(generateButtonRect, "创建")) GenerateResource();
             EditorGUI.EndDisabledGroup();
@@ -213,7 +227,7 @@ namespace Sora.Tools.CSVLoader
                 var previewScrollViewRect = new Rect(0, 0, previewScrollRect.width, previewHeight);
                 previewScrollPosition = GUI.BeginScrollView(previewScrollRect, previewScrollPosition, previewScrollViewRect, false, false, GUIStyle.none, GUIStyle.none);
                 EditorGUI.BeginDisabledGroup(true);
-                EditorGUILayout.TextArea(previewScriptContent);
+                EditorGUILayout.TextArea(previewScriptContent, previewTextAreaStyle);
                 EditorGUI.EndDisabledGroup();
                 previewHeight = GUILayoutUtility.GetLastRect().yMax;
                 GUI.EndScrollView();
@@ -228,16 +242,79 @@ namespace Sora.Tools.CSVLoader
         }
         private void AddSpace(int height = 1) => inputHeight += height;
         /// <summary>
-        /// 创建资源
-        /// 脚本/ScriptObject
+        /// 创建脚本
+        /// c#脚本与ScriptObject脚本
         /// </summary>
         private void GenerateResource()
         {
-            foreach (var data in createDataMap.Values)
+            var dataRecorderMap = new List<GenreateDataRecorder>();
+            foreach (var generateData in generateDataMap.Values)
+            {
+                var dataRecorder = new GenreateDataRecorder();
+                dataRecorder.loadFilePath = generateData.loadFilePath;
+                dataRecorder.scriptFilePath = generateData.scriptFilePath;
+                dataRecorder.resourceFilePath = generateData.resourceFilePath;
+                dataRecorderMap.Add(dataRecorder);
+            }
+            EditorPrefs.SetString("Data", JsonConvert.SerializeObject(dataRecorderMap));
+            foreach (var data in generateDataMap.Values)
             {
                 data.scriptData.GenerateScript();
+                data.scriptAssetData.GenerateScript();
             }
+            AssetDatabase.Refresh();
+        }
+
+        /// <summary>
+        /// 当脚本加载完成后,生成保存数据的资源
+        /// </summary>
+        [UnityEditor.Callbacks.DidReloadScripts]
+        private static void OnScriptsReloaded()
+        {
+            LoadData = true;
+            var data = EditorPrefs.GetString("Data");
+            if (string.IsNullOrEmpty(data))
+            {
+                var dataRecorderMap = JsonConvert.DeserializeObject<List<GenreateDataRecorder>>(data);
+                if (dataRecorderMap != null && dataRecorderMap.Count > 0)
+                {
+                    var generateDataMap = new List<GenerateData>();
+                    foreach (var dataRecorder in dataRecorderMap)
+                    {
+                        var generateData = new GenerateData(0);
+                        generateData.loadFilePath = dataRecorder.loadFilePath;
+                        generateData.scriptFilePath = dataRecorder.scriptFilePath;
+                        generateData.resourceFilePath = dataRecorder.resourceFilePath;
+                        generateDataMap.Add(generateData);
+                    }
+                    /* 生成asset object */
+                    foreach (var generateData in generateDataMap)
+                    {
+                        generateData.scriptAssetData.GenerateAsset();
+                    }
+                    // AssetDatabase.Refresh();
+                    /* 初始化asset数据 */
+                    foreach (var generateData in generateDataMap)
+                    {
+                        generateData.scriptAssetData.scriptAsset.InitData();
+                    }
+                    AssetDatabase.Refresh();
+                    AssetDatabase.SaveAssets();
+                }
+            }
+            EditorPrefs.DeleteKey("Data");
         }
         private static int CreateIndex = int.MinValue;
+
+        public static bool LoadData = false;
+        public static CSVLoaderWindow window;
+    }
+
+
+    public class GenreateDataRecorder
+    {
+        public string loadFilePath;
+        public string scriptFilePath;
+        public string resourceFilePath;
     }
 }

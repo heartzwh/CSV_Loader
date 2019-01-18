@@ -1,4 +1,4 @@
-@start,abc.abc.classname
+@start,abc.abc.classname,default
 string#name,int#count
 a,1
 b,2

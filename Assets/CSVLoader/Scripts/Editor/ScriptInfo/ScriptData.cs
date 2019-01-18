@@ -18,19 +18,17 @@ namespace Sora.Tools.CSVLoader
         /// 构建脚本
         /// </summary>
         /// <param name="generateData">生成数据</param>
-        /// <param name="rawScriptSetting">脚本设置</param>
         /// <param name="rawDataSource">csv中@start到@end中数据</param>
-        public ScriptData(GenerateData generateData, string[] rawScriptSetting, string rawDataSource)
+        public ScriptData(GenerateData generateData, string rawDataSource)
         {
             this.generateData = generateData;
-            scriptSetting = new ScriptSetting(this, rawScriptSetting);
-            if (CheckHaveSameScript())
+            if (!CSVLoaderWindow.LoadData && CheckHaveSameScript())
             {
                 generateData.blockColor = GenerateData.ERROR_COLOR;
                 generateData.ClearColor();
                 return;
             }
-            propertyList = new List<IProperty>();
+            propertyMap = new Dictionary<string, IProperty>();
             scriptRawData = new RawData(rawDataSource);
             if (scriptRawData.width <= 0 || scriptRawData.height <= 0) throw new System.Exception($"{generateData.fileInfo.Name}信息缺失");
             ResolveProperty();
@@ -45,14 +43,14 @@ namespace Sora.Tools.CSVLoader
 
 
         #region property
-        public ScriptSetting scriptSetting { get; private set; }
         /// <summary>
         /// 所有属性
+        /// string: property name
         /// IProperty: 属性
         /// </summary>
-        public List<IProperty> propertyList { get; private set; }
+        public Dictionary<string, IProperty> propertyMap { get; private set; }
         /// <summary>
-        /// 脚本所有内容
+        /// c#脚本内容
         /// </summary>
         /// <value></value>
         public string scriptContent { get; private set; }
@@ -73,10 +71,10 @@ namespace Sora.Tools.CSVLoader
         #region public method
         public void GenerateScript()
         {
-            var savePath = string.Format("{1}{0}{2}.cs", Seperator(), generateData.scriptFilePath, scriptSetting.scriptName);
+            var savePath = string.Format("{1}{0}{2}.cs", Seperator(), generateData.scriptFilePath, generateData.scriptSetting.scriptName);
             if (File.Exists(savePath))
             {
-                Debug.LogError($"文件\"{scriptSetting.scriptName}\"已存在");
+                Debug.LogError($"文件\"{generateData.scriptSetting.scriptName}\"已存在");
                 generateData.blockColor = GenerateData.ERROR_COLOR;
                 generateData.ClearColor();
                 return;
@@ -104,7 +102,7 @@ namespace Sora.Tools.CSVLoader
             for (var columnIndex = 0; columnIndex < propertyRaw.Length; columnIndex++)
             {
                 var propertyRawData = propertyRaw[columnIndex];
-                var propertyData = propertyRawData.Split(GenerateData.SETTING_SPLIT);
+                var propertyData = propertyRawData.Split(Helper.SETTING_SPLIT);
                 if (!valiblePropertySet.Contains(propertyData[0])) throw new System.Exception($"未包含属性{propertyData[0]}");
                 var property = default(IProperty);
                 var range = new RawRange(1, columnIndex, 1, scriptRawData.height - 1);
@@ -125,7 +123,7 @@ namespace Sora.Tools.CSVLoader
                     default: throw new System.Exception($"为定义类型\"{propertyData[0]}\"");
                 }
                 property.InitProperty(propertyData, scriptRawData.GetRangeRawData(range));
-                propertyList.Add(property);
+                propertyMap.Add(property.propertyName, property);
             }
             GenerateScriptContent();
         }
@@ -135,26 +133,27 @@ namespace Sora.Tools.CSVLoader
             var scriptContent = new System.Text.StringBuilder();
             var tabCount = 0;
             /* 脚本设置 */
-            if (!string.IsNullOrEmpty(scriptSetting.namespaceName))
+            if (!string.IsNullOrEmpty(generateData.scriptSetting.namespaceName))
             {
-                scriptContent.AppendLine($"{GetTab(tabCount)}namespace {scriptSetting.namespaceName}");
+                scriptContent.AppendLine($"{GetTab(tabCount)}namespace {generateData.scriptSetting.namespaceName}");
                 scriptContent.AppendLine(GetTab(tabCount) + "{");
                 tabCount++;
             }
             /* 脚本属性 */
-            scriptContent.AppendLine($"{GetTab(tabCount)}public class {scriptSetting.scriptName}");
+            scriptContent.AppendLine($"{GetTab(tabCount)}[System.Serializable]");
+            scriptContent.AppendLine($"{GetTab(tabCount)}public class {generateData.scriptSetting.scriptName}");
             scriptContent.AppendLine(GetTab(tabCount) + "{");
             tabCount++;
             var propertyIndex = 0;
-            foreach (var property in propertyList)
+            foreach (var property in propertyMap.Values)
             {
                 scriptContent.AppendLine($"{GetTab(tabCount)}{property.propertyContent}");
-                if (propertyIndex < propertyList.Count - 1) scriptContent.AppendLine();
+                if (propertyIndex < propertyMap.Count - 1) scriptContent.AppendLine();
                 propertyIndex++;
             }
             tabCount--;
             scriptContent.AppendLine(GetTab(tabCount) + "}");
-            if (!string.IsNullOrEmpty(scriptSetting.namespaceName))
+            if (!string.IsNullOrEmpty(generateData.scriptSetting.namespaceName))
             {
                 tabCount--;
                 scriptContent.AppendLine(GetTab(tabCount) + "}");
@@ -166,9 +165,9 @@ namespace Sora.Tools.CSVLoader
             var haveSame = false;
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                if (assembly.GetType(scriptSetting.scriptFullname) != null)
+                if (assembly.GetType(generateData.scriptSetting.scriptFullname) != null)
                 {
-                    UnityEngine.Debug.LogError($"类\"{scriptSetting.scriptFullname}\"已存在");
+                    CSVLoaderWindow.window.ShowNotification(new GUIContent($"类\"{generateData.scriptSetting.scriptFullname}\"已存在"));
                     haveSame = true;
                     break;
                 }
