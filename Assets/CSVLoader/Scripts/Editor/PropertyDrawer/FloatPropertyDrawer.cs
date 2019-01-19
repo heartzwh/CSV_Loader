@@ -1,41 +1,20 @@
 //Author: sora
 
+using UnityEditor;
+using UnityEngine;
+
 namespace Sora.Tools.CSVLoader.Editor
 {
-	public class FloatPropertyDrawer
-	{
-		#region constructor
-
-		#endregion
-
-
-		#region event/delegate
-
-		#endregion
-
-
-		#region property
-
-		#endregion
-
-
-		#region public method
-
-		#endregion
-
-
-		#region protected method
-
-		#endregion
-
-
-		#region private method
-
-		#endregion
-
-
-		#region static
-
-		#endregion
-	}
+    [CustomPropertyDrawer(typeof(FloatProperty), true)]
+    public class FloatPropertyDrawer : PropertyDrawer
+    {
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            EditorGUI.BeginProperty(position, label, property);
+            property.serializedObject.Update();
+            property.FindPropertyRelative("propertyValue").floatValue = EditorGUI.FloatField(position, property.name, property.FindPropertyRelative("propertyValue").floatValue);
+            property.serializedObject.ApplyModifiedProperties();
+            EditorGUI.EndProperty();
+        }
+    }
 }

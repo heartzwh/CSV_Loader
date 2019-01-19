@@ -64,7 +64,8 @@ namespace Sora.Tools.CSVLoader.Editor
         /// <returns></returns>
         private HashSet<string> valiblePropertySet = new HashSet<string>()
         {
-            "int", "float", "string", "bool", "double", "long"
+            "int", "float", "string", "bool",
+            "int_array", "float_array", "string_array", "bool_array"
         };
         #endregion
 
@@ -99,11 +100,13 @@ namespace Sora.Tools.CSVLoader.Editor
         /// </summary>
         private void ResolveProperty()
         {
+            var errorFalg = false;
             var propertyRaw = scriptRawData.GetRow(0);
             for (var columnIndex = 0; columnIndex < propertyRaw.Length; columnIndex++)
             {
                 var propertyRawData = propertyRaw[columnIndex];
                 var propertyData = propertyRawData.Split(Helper.SETTING_SPLIT);
+                if (propertyData[0].Equals(RawData.EMPTY_DATA)) continue;
                 if (!valiblePropertySet.Contains(propertyData[0])) throw new System.Exception($"未包含属性{propertyData[0]}");
                 var property = default(IProperty);
                 var range = new RawRange(1, columnIndex, 1, scriptRawData.height - 1);
@@ -121,12 +124,36 @@ namespace Sora.Tools.CSVLoader.Editor
                     case "bool":
                         property = new BooleanProperty();
                         break;
+                    case "int_array":
+                        property = new IntArrayProperty();
+                        range.width = Convert.ToInt32(propertyData[2]);
+                        break;
+                    case "float_array":
+                        property = new FloatArrayProperty();
+                        range.width = Convert.ToInt32(propertyData[2]);
+                        break;
+                    case "string_array":
+                        property = new StringArrayProperty();
+                        range.width = Convert.ToInt32(propertyData[2]);
+                        break;
+                    case "bool_array":
+                        property = new BooleanArrayProperty();
+                        range.width = Convert.ToInt32(propertyData[2]);
+                        break;
                     default: throw new System.Exception($"\"{generateData.loadFilePath}\"未定义类型\"{propertyData[0]}\"");
                 }
                 property.InitProperty(propertyData, scriptRawData.GetRangeRawData(range));
+                if (recordPropertyMap.ContainsKey(property.propertyName))
+                {
+                    CSVLoaderWindow.window.ShowNotification(new GUIContent($"文件\"{generateData.scriptSetting.scriptName}\"存在相同属性名称{property.propertyName}"));
+                    generateData.blockColor = GenerateData.ERROR_COLOR;
+                    generateData.ClearColor();
+                    errorFalg = true;
+                    break;
+                }
                 recordPropertyMap.Add(property.propertyName, property);
             }
-            GenerateScriptContent();
+            if (!errorFalg) GenerateScriptContent();
         }
 
         private void GenerateScriptContent()

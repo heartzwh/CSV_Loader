@@ -1,8 +1,11 @@
 //Author: sora
 
+using System;
+
 namespace Sora.Tools.CSVLoader
 {
-    public abstract class BaseArray2DProperty<TValue> : BaseProperty<TValue>
+    [Serializable]
+    public class BooleanArrayProperty : BaseArrayProperty<bool[]>
     {
         #region constructor
 
@@ -20,7 +23,14 @@ namespace Sora.Tools.CSVLoader
 
 
         #region public method
-
+        public override void SetPropertyValue(RawData value)
+        {
+            propertyValue = new bool[value.width];
+            for (var index = 0; index < value.width; index++)
+            {
+                propertyValue[index] = Convert.ToBoolean(value[index, 0]);
+            }
+        }
         #endregion
 
 

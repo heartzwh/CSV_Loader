@@ -51,8 +51,10 @@ namespace Sora.Tools.CSVLoader.Editor
                     var fieldSetPropertyValueMethod = fieldType.GetMethod("SetPropertyValue");
                     /* 调用 InitProperty 方法 */
                     fieldInitPropertyMethod.Invoke(fieldScript, new object[] { recordProperty.propertySetting, recordProperty.propertyRawData });
+                    /* 根据属性占用数据范围,获取需要设置的值 */
+                    var setDataSource = recordProperty.propertyRawData.GetRangeRawData(new RawRange(getPropertyValueIndex, 0, recordProperty.propertyRawData.width, 1));
                     /* 调用 SetPropertyValue 方法 */
-                    fieldSetPropertyValueMethod.Invoke(fieldScript, new object[] { recordProperty.propertyRawData[0, getPropertyValueIndex] });
+                    fieldSetPropertyValueMethod.Invoke(fieldScript, new object[] { setDataSource });
                     scriptType.GetField(field.Name).SetValue(script, fieldScript);
                 }
                 getPropertyValueIndex++;
@@ -74,17 +76,17 @@ namespace Sora.Tools.CSVLoader.Editor
             scriptContent.AppendLine();
             /* 定义添加数据函数 */
             scriptContent.AppendLine($"{GetTab(tabCount)}public void {METHOD_NAME_SETDATA}(System.Collections.Generic.List<object> dataSetSource)");
-            scriptContent.AppendLine(   GetTab(tabCount) + "{");
+            scriptContent.AppendLine(GetTab(tabCount) + "{");
             tabCount++;
             scriptContent.AppendLine($"{GetTab(tabCount)}{PROPERTY_NAME_DATASET} = new System.Collections.Generic.List<{generateData.scriptSetting.scriptName}>();");
             scriptContent.AppendLine($"{GetTab(tabCount)}foreach (var data in dataSetSource)");
-            scriptContent.AppendLine(   GetTab(tabCount) + "{");
+            scriptContent.AppendLine(GetTab(tabCount) + "{");
             tabCount++;
             scriptContent.AppendLine($"{GetTab(tabCount)}{PROPERTY_NAME_DATASET}.Add(data as {generateData.scriptSetting.scriptName});");
             tabCount--;
-            scriptContent.AppendLine(   GetTab(tabCount) + "}");
+            scriptContent.AppendLine(GetTab(tabCount) + "}");
             tabCount--;
-            scriptContent.AppendLine(   GetTab(tabCount) + "}");
+            scriptContent.AppendLine(GetTab(tabCount) + "}");
             return scriptContent.ToString();
             /* 内容为
             public System.Collections.Generic.List<CLASS_NAME> dataSet;

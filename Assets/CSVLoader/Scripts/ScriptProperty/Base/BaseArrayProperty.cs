@@ -2,7 +2,7 @@
 
 namespace Sora.Tools.CSVLoader
 {
-    public abstract class BaseArray2DProperty<TValue> : BaseProperty<TValue>
+    public abstract class BaseArrayProperty<TValue> : BaseProperty<TValue>
     {
         #region constructor
 
@@ -15,7 +15,10 @@ namespace Sora.Tools.CSVLoader
 
 
         #region property
-
+        /// <summary>
+        /// 折叠: Editor使用,不要调用
+        /// </summary>
+        public bool foldout = false;
         #endregion
 
 

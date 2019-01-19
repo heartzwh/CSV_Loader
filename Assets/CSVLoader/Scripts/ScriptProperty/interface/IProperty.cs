@@ -41,9 +41,9 @@ namespace Sora.Tools.CSVLoader
         /// <param name="sourceData">csv表数据</param>
         void InitProperty(string[] propertySetting, RawData sourceData);
         /// <summary>
-        /// 设置值
+        /// IScriptAsset => 设置当前属性值
         /// </summary>
         /// <param name="value"></param>
-        void SetPropertyValue(string value);
+        void SetPropertyValue(RawData value);
     }
 }

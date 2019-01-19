@@ -5,14 +5,14 @@ using UnityEngine;
 
 namespace Sora.Tools.CSVLoader.Editor
 {
-    [CustomPropertyDrawer(typeof(IntProperty), true)]
-    public class IntPropertyDrawer : PropertyDrawer
+    [CustomPropertyDrawer(typeof(BooleanProperty), true)]
+    public class BooleanPropertyDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             EditorGUI.BeginProperty(position, label, property);
             property.serializedObject.Update();
-            property.FindPropertyRelative("propertyValue").intValue = EditorGUI.IntField(position, property.name, property.FindPropertyRelative("propertyValue").intValue);
+            property.FindPropertyRelative("propertyValue").boolValue = EditorGUI.Toggle(position, property.name, property.FindPropertyRelative("propertyValue").boolValue);
             property.serializedObject.ApplyModifiedProperties();
             EditorGUI.EndProperty();
         }

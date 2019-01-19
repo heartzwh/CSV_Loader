@@ -5,7 +5,7 @@ using System;
 namespace Sora.Tools.CSVLoader
 {
     [Serializable]
-    public class FloatProperty : BaseProperty<float>
+    public class FloatArrayProperty : BaseArrayProperty<float[]>
     {
         #region constructor
 
@@ -25,8 +25,13 @@ namespace Sora.Tools.CSVLoader
         #region public method
         public override void SetPropertyValue(RawData value)
         {
-            propertyValue = Convert.ToSingle(value[0, 0]);
+            if (propertyValue == null) propertyValue = new float[value.width];
+            for (var index = 0; index < value.width; index++)
+            {
+                propertyValue[index] = Convert.ToSingle(value[index, 0]);
+            }
         }
+
         #endregion
 
 
@@ -43,6 +48,5 @@ namespace Sora.Tools.CSVLoader
         #region static
 
         #endregion
-
     }
 }

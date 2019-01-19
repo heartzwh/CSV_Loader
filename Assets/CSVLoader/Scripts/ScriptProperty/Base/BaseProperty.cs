@@ -24,6 +24,8 @@ namespace Sora.Tools.CSVLoader
         public Type propertyValueType { get; protected set; }
 
         public RawData propertyRawData { get; private set; }
+        
+        public RawRange propertyRange { get; set; }
 
         public string propertyContent { get; private set; }
 
@@ -47,7 +49,7 @@ namespace Sora.Tools.CSVLoader
             propertyName = propertySetting[1];
             propertyContent = $"public {this.GetType().FullName} {propertyName};";
         }
-        public abstract void SetPropertyValue(string value);
+        public abstract void SetPropertyValue(RawData value);
         #endregion
 
 

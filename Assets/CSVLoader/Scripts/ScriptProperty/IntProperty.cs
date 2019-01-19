@@ -24,9 +24,9 @@ namespace Sora.Tools.CSVLoader
 
 
         #region public method
-        public override void SetPropertyValue(string value)
+        public override void SetPropertyValue(RawData value)
         {
-            propertyValue = Convert.ToInt32(value);
+            propertyValue = Convert.ToInt32(value[0, 0]);
         }
 
         #endregion

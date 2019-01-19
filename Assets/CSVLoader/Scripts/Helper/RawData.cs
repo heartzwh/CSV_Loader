@@ -37,7 +37,12 @@ namespace Sora.Tools.CSVLoader
                 var line = lineData[y].Split(Helper.SPLIT);
                 for (var x = 0; x < width; x++)
                 {
-                    rowData[x, y] = line[x];
+                    /* 为什么 x 会大于 line.Length */
+                    /* 因为 width 取的是数据整个表数据最宽的那一行的宽度,有的数据行可能没有那么宽 */
+                    /* 所以,当超过自身行宽度时,使用 [EMPTY_DATA] 来填充 */
+                    if (x < line.Length)
+                        rowData[x, y] = line[x];
+                    else rowData[x, y] = EMPTY_DATA;
                 }
             }
         }
@@ -149,7 +154,7 @@ namespace Sora.Tools.CSVLoader
 
 
         #region static
-
+        public const string EMPTY_DATA = "EMPTY_DATA";
         #endregion
     }
 }
