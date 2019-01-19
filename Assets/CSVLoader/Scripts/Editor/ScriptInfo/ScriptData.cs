@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 
-namespace Sora.Tools.CSVLoader
+namespace Sora.Tools.CSVLoader.Editor
 {
     /// <summary>
     /// 脚本包含的数据
@@ -22,15 +22,16 @@ namespace Sora.Tools.CSVLoader
         public ScriptData(GenerateData generateData, string rawDataSource)
         {
             this.generateData = generateData;
-            if (!CSVLoaderWindow.LoadData && CheckHaveSameScript())
+            /* 当前为数据加载,则不检测相同脚本,因为不用生成脚本了 */
+            if (!CSVLoaderWindow.loadDataFlag && CheckHaveSameScript())
             {
                 generateData.blockColor = GenerateData.ERROR_COLOR;
                 generateData.ClearColor();
                 return;
             }
-            propertyMap = new Dictionary<string, IProperty>();
+            recordPropertyMap = new Dictionary<string, IProperty>();
             scriptRawData = new RawData(rawDataSource);
-            if (scriptRawData.width <= 0 || scriptRawData.height <= 0) throw new System.Exception($"{generateData.fileInfo.Name}信息缺失");
+            if (scriptRawData.width <= 0 || scriptRawData.height <= 0) throw new System.Exception($"{generateData.csvFileInfo.Name}信息缺失");
             ResolveProperty();
         }
 
@@ -44,11 +45,11 @@ namespace Sora.Tools.CSVLoader
 
         #region property
         /// <summary>
-        /// 所有属性
-        /// string: property name
-        /// IProperty: 属性
+        /// 记录脚本所有属性
+        /// key: property name
+        /// value: 属性
         /// </summary>
-        public Dictionary<string, IProperty> propertyMap { get; private set; }
+        public Dictionary<string, IProperty> recordPropertyMap { get; private set; }
         /// <summary>
         /// c#脚本内容
         /// </summary>
@@ -71,10 +72,10 @@ namespace Sora.Tools.CSVLoader
         #region public method
         public void GenerateScript()
         {
-            var savePath = string.Format("{1}{0}{2}.cs", Seperator(), generateData.scriptFilePath, generateData.scriptSetting.scriptName);
+            var savePath = string.Format("{1}{0}{2}.cs", CSVLoaderWindow.Seperator(), CSVLoaderWindow.scriptFilePath, generateData.scriptSetting.scriptName);
             if (File.Exists(savePath))
             {
-                Debug.LogError($"文件\"{generateData.scriptSetting.scriptName}\"已存在");
+                CSVLoaderWindow.window.ShowNotification(new GUIContent($"文件\"{generateData.scriptSetting.scriptName}\"已存在"));
                 generateData.blockColor = GenerateData.ERROR_COLOR;
                 generateData.ClearColor();
                 return;
@@ -120,10 +121,10 @@ namespace Sora.Tools.CSVLoader
                     case "bool":
                         property = new BooleanProperty();
                         break;
-                    default: throw new System.Exception($"为定义类型\"{propertyData[0]}\"");
+                    default: throw new System.Exception($"\"{generateData.loadFilePath}\"未定义类型\"{propertyData[0]}\"");
                 }
                 property.InitProperty(propertyData, scriptRawData.GetRangeRawData(range));
-                propertyMap.Add(property.propertyName, property);
+                recordPropertyMap.Add(property.propertyName, property);
             }
             GenerateScriptContent();
         }
@@ -145,10 +146,10 @@ namespace Sora.Tools.CSVLoader
             scriptContent.AppendLine(GetTab(tabCount) + "{");
             tabCount++;
             var propertyIndex = 0;
-            foreach (var property in propertyMap.Values)
+            foreach (var property in recordPropertyMap.Values)
             {
                 scriptContent.AppendLine($"{GetTab(tabCount)}{property.propertyContent}");
-                if (propertyIndex < propertyMap.Count - 1) scriptContent.AppendLine();
+                if (propertyIndex < recordPropertyMap.Count - 1) scriptContent.AppendLine();
                 propertyIndex++;
             }
             tabCount--;
@@ -182,16 +183,6 @@ namespace Sora.Tools.CSVLoader
                 tabStr += "    ";
             }
             return tabStr;
-        }
-        private static char Seperator()
-        {
-            char separator = '/';
-#if UNITY_STANDALONE_OSX
-            separator = '/';
-#elif UNITY_STANDALONE_WIN
-            separator = '\\';
-#endif
-            return separator;
         }
         #endregion
 

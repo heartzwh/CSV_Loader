@@ -5,7 +5,7 @@ using System.IO;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace Sora.Tools.CSVLoader
+namespace Sora.Tools.CSVLoader.Editor
 {
     /// <summary>
     /// 创建信息
@@ -21,14 +21,10 @@ namespace Sora.Tools.CSVLoader
             set
             {
                 m_loadFilePath = value;
-                fileInfo = new FileInfo(value);
+                csvFileInfo = new FileInfo(value);
                 GenerateScript();
             }
         }
-        /// <summary>
-        /// 脚本文件位置(选择保存位置)
-        /// </summary>
-        public string scriptFilePath;
         /// <summary>
         /// 资源文件位置(选择保存位置)
         /// </summary>
@@ -48,7 +44,7 @@ namespace Sora.Tools.CSVLoader
         {
             get
             {
-                return !string.IsNullOrEmpty(scriptFilePath) && !string.IsNullOrEmpty(resourceFilePath);
+                return !string.IsNullOrEmpty(resourceFilePath);
             }
         }
         /// <summary>
@@ -61,7 +57,7 @@ namespace Sora.Tools.CSVLoader
         /// </summary>
         /// <value></value>
         public ScriptAssetData scriptAssetData;
-        public FileInfo fileInfo { get; private set; }
+        public FileInfo csvFileInfo { get; private set; }
         /// <summary>
         /// 块颜色
         /// </summary>

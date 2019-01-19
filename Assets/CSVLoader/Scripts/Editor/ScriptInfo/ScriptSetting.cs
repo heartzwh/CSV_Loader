@@ -1,6 +1,6 @@
 //Author: sora
 
-namespace Sora.Tools.CSVLoader
+namespace Sora.Tools.CSVLoader.Editor
 {
     public class ScriptSetting
     {
@@ -9,14 +9,14 @@ namespace Sora.Tools.CSVLoader
         public ScriptSetting(GenerateData generateData, string[] setting)
         {
             this.generateData = generateData;
-            if (setting.Length < 1) throw new System.Exception($"{generateData.fileInfo.Name}未写脚本设置");
+            if (setting.Length < 1) throw new System.Exception($"{generateData.csvFileInfo.Name}未写脚本设置");
             /* 类信息: 命名空间.类名称 */
             var namespaceString = setting[0];
             var lastDotIndex = namespaceString.LastIndexOf('.');
             namespaceName = namespaceString.Substring(0, lastDotIndex);
             scriptName = namespaceString.Substring(lastDotIndex + 1);
             scriptFullname = namespaceString;
-            if (setting.Length < 2) throw new System.Exception($"{generateData.fileInfo.Name}未写script object设置");
+            if (setting.Length < 2) throw new System.Exception($"{generateData.csvFileInfo.Name}未写script object设置");
             /* script object信息: 数据显示方式 */
             scriptAssetName = $"{scriptName}ScriptableObject";
             scriptAssetFullName = $"{scriptFullname}ScriptableObject";

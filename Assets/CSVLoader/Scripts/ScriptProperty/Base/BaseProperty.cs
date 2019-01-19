@@ -21,28 +21,33 @@ namespace Sora.Tools.CSVLoader
 
 
         #region property
-        public Type type { get; protected set; }
+        public Type propertyValueType { get; protected set; }
 
-        public RawData rawData { get; private set; }
+        public RawData propertyRawData { get; private set; }
 
         public string propertyContent { get; private set; }
 
         public string propertyName { get; private set; }
         /// <summary>
-        /// 属性值
+        /// 属性值.
+        /// 只能在editor中修改
         /// </summary>
         public TValue propertyValue;
+        public string[] propertySetting { get; private set; }
         #endregion
 
 
         #region public method
         public virtual void InitProperty(string[] propertySetting, RawData sourceData)
         {
-            type = typeof(TValue);
-            rawData = sourceData;
+            propertyValueType = typeof(TValue);
+            propertyRawData = sourceData;
+            this.propertySetting = new string[propertySetting.Length];
+            Array.Copy(propertySetting, this.propertySetting, propertySetting.Length);
             propertyName = propertySetting[1];
             propertyContent = $"public {this.GetType().FullName} {propertyName};";
         }
+        public abstract void SetPropertyValue(string value);
         #endregion
 
 

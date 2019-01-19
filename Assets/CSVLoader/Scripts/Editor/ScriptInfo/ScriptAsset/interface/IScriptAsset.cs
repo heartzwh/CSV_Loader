@@ -1,6 +1,6 @@
 //Author: sora
 
-namespace Sora.Tools.CSVLoader
+namespace Sora.Tools.CSVLoader.Editor
 {
     public interface IScriptAsset
     {

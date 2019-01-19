@@ -1,5 +1,5 @@
-@start,abc.abc.classname,default
-string#name,int#count
-a,1
-b,2
+@start,A.B.TestClass,default
+string#name,int#count,float#a
+a,1,1.1
+b,2,2222.2
 @end,

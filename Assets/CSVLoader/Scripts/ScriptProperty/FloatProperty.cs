@@ -23,6 +23,10 @@ namespace Sora.Tools.CSVLoader
 
 
         #region public method
+        public override void SetPropertyValue(string value)
+        {
+            propertyValue = Convert.ToSingle(value);
+        }
         #endregion
 
 

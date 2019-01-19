@@ -3,7 +3,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Sora.Tools.CSVLoader
+namespace Sora.Tools.CSVLoader.Editor
 {
     [CustomPropertyDrawer(typeof(StringProperty), true)]
     public class StringPropertyDrawer : PropertyDrawer
@@ -19,7 +19,7 @@ namespace Sora.Tools.CSVLoader
 
 
         #region property
-
+        
         #endregion
 
 

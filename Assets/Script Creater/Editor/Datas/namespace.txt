@@ -1,1 +1,2 @@
 Sora.Tools.CSVLoader
+Sora.Tools.CSVLoader.Editor

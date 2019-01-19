@@ -8,10 +8,10 @@ namespace Sora.Tools.CSVLoader
     public interface IProperty
     {
         /// <summary>
-        /// 属性类型
+        /// 属性值的类型
         /// </summary>
         /// <value></value>
-        Type type { get; }
+        Type propertyValueType { get; }
         /// <summary>
         /// 属性名称
         /// </summary>
@@ -21,7 +21,7 @@ namespace Sora.Tools.CSVLoader
         /// 属性原始数据
         /// </summary>
         /// <value></value>
-        RawData rawData { get; }
+        RawData propertyRawData { get; }
         /// <summary>
         /// 属性内容
         /// 比如:
@@ -30,10 +30,20 @@ namespace Sora.Tools.CSVLoader
         /// <value></value>
         string propertyContent { get; }
         /// <summary>
+        /// 属性设置
+        /// </summary>
+        /// <value></value>
+        string[] propertySetting { get; }
+        /// <summary>
         /// 初始化属性
         /// </summary>
         /// <param name="propertySetting">属性设置</param>
         /// <param name="sourceData">csv表数据</param>
         void InitProperty(string[] propertySetting, RawData sourceData);
+        /// <summary>
+        /// 设置值
+        /// </summary>
+        /// <param name="value"></param>
+        void SetPropertyValue(string value);
     }
 }

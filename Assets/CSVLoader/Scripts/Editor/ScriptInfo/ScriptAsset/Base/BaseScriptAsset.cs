@@ -1,11 +1,10 @@
 //Author: sora
 
-namespace Sora.Tools.CSVLoader
+namespace Sora.Tools.CSVLoader.Editor
 {
     public abstract class BaseScriptAsset : IScriptAsset
     {
         #region constructor
-
         #endregion
 
 
@@ -39,7 +38,7 @@ namespace Sora.Tools.CSVLoader
             scriptContent.AppendLine($"{GetTab(tabCount)}public class {generateData.scriptSetting.scriptAssetName} : UnityEngine.ScriptableObject");
             scriptContent.AppendLine(GetTab(tabCount) + "{");
             tabCount++;
-            scriptContent.AppendLine(GetPropertyContent(tabCount));
+            scriptContent.AppendLine(GetScriptContent(tabCount));
             tabCount--;
             scriptContent.AppendLine(GetTab(tabCount) + "}");
             if (!string.IsNullOrEmpty(generateData.scriptSetting.namespaceName))
@@ -49,19 +48,12 @@ namespace Sora.Tools.CSVLoader
             }
             this.scriptContent = scriptContent.ToString();
         }
-        public virtual void InitData()
-        {
-            // 根据property名称,获取对应的数据(ScriptData.scriptRawData)
-            foreach (var property in ge)
-            {
-                
-            }
-        }
+        public abstract void InitData();
         #endregion
 
 
         #region protected method
-        protected abstract string GetPropertyContent(int tabCount);
+        protected abstract string GetScriptContent(int tabCount);
         protected string GetTab(int count)
         {
             var tabStr = "";

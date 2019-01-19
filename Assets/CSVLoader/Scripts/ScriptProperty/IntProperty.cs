@@ -19,11 +19,15 @@ namespace Sora.Tools.CSVLoader
 
 
         #region property
-        
+
         #endregion
 
 
         #region public method
+        public override void SetPropertyValue(string value)
+        {
+            propertyValue = Convert.ToInt32(value);
+        }
 
         #endregion
 

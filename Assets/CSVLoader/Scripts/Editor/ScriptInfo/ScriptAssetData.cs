@@ -4,7 +4,7 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace Sora.Tools.CSVLoader
+namespace Sora.Tools.CSVLoader.Editor
 {
     public class ScriptAssetData
     {
@@ -38,7 +38,7 @@ namespace Sora.Tools.CSVLoader
         {
             get
             {
-                return Helper.GetUnityAssetPath(string.Format("{1}{0}{2}.asset", Seperator(), generateData.resourceFilePath, generateData.scriptSetting.scriptAssetName));
+                return Helper.GetUnityAssetPath(string.Format("{1}{0}{2}.asset", CSVLoaderWindow.Seperator(), generateData.resourceFilePath, generateData.scriptSetting.scriptAssetName));
             }
         }
         /// <summary>
@@ -52,7 +52,7 @@ namespace Sora.Tools.CSVLoader
         #region public method
         public void GenerateScript()
         {
-            var savePath = string.Format("{1}{0}{2}.cs", Seperator(), generateData.scriptFilePath, generateData.scriptSetting.scriptAssetName);
+            var savePath = string.Format("{1}{0}{2}.cs", CSVLoaderWindow.Seperator(), CSVLoaderWindow.scriptFilePath, generateData.scriptSetting.scriptAssetName);
             if (File.Exists(savePath))
             {
                 CSVLoaderWindow.window.ShowNotification(new GUIContent($"文件\"{generateData.scriptSetting.scriptAssetName}\"已存在"));
@@ -89,16 +89,6 @@ namespace Sora.Tools.CSVLoader
             }
             scriptAsset.InitScriptAsset(generateData);
             scriptContent = scriptAsset.scriptContent;
-        }
-        private static char Seperator()
-        {
-            char separator = '/';
-#if UNITY_STANDALONE_OSX
-            separator = '/';
-#elif UNITY_STANDALONE_WIN
-            separator = '\\';
-#endif
-            return separator;
         }
         #endregion
 

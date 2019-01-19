@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 
-namespace Sora.Tools.CSVLoader
+namespace Sora.Tools.CSVLoader.Editor
 {
     public class CSVLoaderWindow : EditorWindow
     {
@@ -63,7 +63,7 @@ namespace Sora.Tools.CSVLoader
         {
             generateDataMap = new Dictionary<int, GenerateData>();
             previewScriptContent = string.Empty;
-            LoadData = false;
+            loadDataFlag = false;
 
             previewTextAreaStyle = new GUIStyle();
             previewTextAreaStyle.wordWrap = true;
@@ -103,7 +103,7 @@ namespace Sora.Tools.CSVLoader
                 var foldoutTitle = "未选择文件";
                 if (!string.IsNullOrEmpty(data.loadFilePath))
                 {
-                    foldoutTitle = $"{data.fileInfo.Name}[{data.scriptSetting.scriptFullname}]";
+                    foldoutTitle = $"{data.csvFileInfo.Name}[{data.scriptSetting.scriptFullname}]";
                 }
                 data.foldout = EditorGUI.Foldout(foldoutRect, data.foldout, foldoutTitle, true);
                 if (GUI.Button(removeButtonRect, "x"))
@@ -115,7 +115,7 @@ namespace Sora.Tools.CSVLoader
                     }
                     else
                     {
-                        if (EditorUtility.DisplayDialog("删除资源", $"删除{data.fileInfo.Name}", "确定", "取消")) removeFlag = true;
+                        if (EditorUtility.DisplayDialog("删除资源", $"删除{data.csvFileInfo.Name}", "确定", "取消")) removeFlag = true;
                     }
                     if (removeFlag)
                     {
@@ -157,18 +157,6 @@ namespace Sora.Tools.CSVLoader
                     if (!string.IsNullOrEmpty(data.loadFilePath))
                     {
                         AddSpace();
-                        var scriptRect = new Rect(inputArea.x, inputHeight, fieldWidth, LINE_HEIGHT);
-                        var scriptButtonRect = new Rect(scriptRect.xMax + Margin, inputHeight, buttonWidth, BUTTON_HEIGHT);
-                        var fileInfo = new FileInfo(data.loadFilePath);
-                        EditorGUI.BeginDisabledGroup(true);
-                        EditorGUI.TextField(scriptRect, "脚本路径", data.scriptFilePath);
-                        EditorGUI.EndDisabledGroup();
-                        if (GUI.Button(scriptButtonRect, "脚本路径"))
-                        {
-                            var saveScriptFilePath = EditorUtility.SaveFolderPanel("保存脚本位置", "", "");
-                            data.scriptFilePath = saveScriptFilePath;
-                        }
-                        AddHeight(1);
                         var resourceRect = new Rect(inputArea.x, inputHeight, fieldWidth, LINE_HEIGHT);
                         var resourceButtonRect = new Rect(resourceRect.xMax + Margin, inputHeight, buttonWidth, BUTTON_HEIGHT);
                         EditorGUI.BeginDisabledGroup(true);
@@ -206,8 +194,8 @@ namespace Sora.Tools.CSVLoader
             var generateButtonRect = new Rect(addButtonRect.xMax + Margin, splitLineArea.yMax + Margin / 2, 50, BUTTON_HEIGHT);
             if (GUI.Button(addButtonRect, "+"))
             {
-                generateDataMap.Add(CreateIndex, new GenerateData(CreateIndex) { foldout = true });
-                CreateIndex++;
+                generateDataMap.Add(GenerateIndex, new GenerateData(GenerateIndex) { foldout = true });
+                GenerateIndex++;
             }
             var createEnable = generateDataMap.Count > 0;
             foreach (var data in generateDataMap.Values) createEnable &= data.prepareComplete;
@@ -252,7 +240,6 @@ namespace Sora.Tools.CSVLoader
             {
                 var dataRecorder = new GenreateDataRecorder();
                 dataRecorder.loadFilePath = generateData.loadFilePath;
-                dataRecorder.scriptFilePath = generateData.scriptFilePath;
                 dataRecorder.resourceFilePath = generateData.resourceFilePath;
                 dataRecorderMap.Add(dataRecorder);
             }
@@ -271,9 +258,9 @@ namespace Sora.Tools.CSVLoader
         [UnityEditor.Callbacks.DidReloadScripts]
         private static void OnScriptsReloaded()
         {
-            LoadData = true;
+            loadDataFlag = true;
             var data = EditorPrefs.GetString("Data");
-            if (string.IsNullOrEmpty(data))
+            if (!string.IsNullOrEmpty(data))
             {
                 var dataRecorderMap = JsonConvert.DeserializeObject<List<GenreateDataRecorder>>(data);
                 if (dataRecorderMap != null && dataRecorderMap.Count > 0)
@@ -283,7 +270,6 @@ namespace Sora.Tools.CSVLoader
                     {
                         var generateData = new GenerateData(0);
                         generateData.loadFilePath = dataRecorder.loadFilePath;
-                        generateData.scriptFilePath = dataRecorder.scriptFilePath;
                         generateData.resourceFilePath = dataRecorder.resourceFilePath;
                         generateDataMap.Add(generateData);
                     }
@@ -292,7 +278,6 @@ namespace Sora.Tools.CSVLoader
                     {
                         generateData.scriptAssetData.GenerateAsset();
                     }
-                    // AssetDatabase.Refresh();
                     /* 初始化asset数据 */
                     foreach (var generateData in generateDataMap)
                     {
@@ -304,17 +289,41 @@ namespace Sora.Tools.CSVLoader
             }
             EditorPrefs.DeleteKey("Data");
         }
-        private static int CreateIndex = int.MinValue;
 
-        public static bool LoadData = false;
+        /// <summary>
+        /// true: 数据正在被加载
+        /// </summary>
+        public static bool loadDataFlag = false;
         public static CSVLoaderWindow window;
+        public static string scriptFilePath
+        {
+            get
+            {
+                var path = $"{UnityEngine.Application.dataPath}{CSVLoaderWindow.Seperator()}CSVLoader/Scripts/Editor/GenerateScript/";
+                if (!Directory.Exists(path)) Directory.CreateDirectory(path);
+                return path;
+            }
+        }
+        public static char Seperator()
+        {
+            char separator = '/';
+#if UNITY_STANDALONE_OSX
+            separator = '/';
+#elif UNITY_STANDALONE_WIN
+            separator = '\\';
+#endif
+            return separator;
+        }
+
+        private static int GenerateIndex = int.MinValue;
     }
 
-
+    /// <summary>
+    /// 创建的资源csv需要的数据
+    /// </summary>
     public class GenreateDataRecorder
     {
         public string loadFilePath;
-        public string scriptFilePath;
         public string resourceFilePath;
     }
 }
