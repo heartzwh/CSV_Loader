@@ -9,7 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3b4753560495c4d3a86213406e589f9f, type: 3}
+  m_Script: {fileID: 11500000, guid: 2e709487e3fe7433c99b6ca595024d58, type: 3}
   m_Name: TestClassScriptableObject
   m_EditorClassIdentifier: 
-  dataSet: []
+  dataSet:
+    array:
+      propertyValue: 
+      width: 0
+      height: 0

@@ -2,6 +2,7 @@
 
 namespace Sora.Tools.CSVLoader
 {
+    public abstract class BaseArray2DProperty { }
     public abstract class BaseArray2DProperty<TValue> : BaseProperty<TValue>
     {
         #region constructor

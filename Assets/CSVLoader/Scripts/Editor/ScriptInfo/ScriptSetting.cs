@@ -88,5 +88,9 @@ namespace Sora.Tools.CSVLoader.Editor
         /// ScriptObject显示数据方式,使用默认方式(list)
         /// </summary>
         DEFAULT,
+        /// <summary>
+        /// ScriptObject显示数据方式,使用2D数组显示
+        /// </summary>
+        ARRAY2D
     }
 }

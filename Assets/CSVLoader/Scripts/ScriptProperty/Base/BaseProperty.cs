@@ -32,7 +32,7 @@ namespace Sora.Tools.CSVLoader
         public string propertyName { get; private set; }
         /// <summary>
         /// 属性值.
-        /// 只能在editor中修改
+        /// 只能在CSV文件中修改
         /// </summary>
         public TValue propertyValue;
         public string[] propertySetting { get; private set; }

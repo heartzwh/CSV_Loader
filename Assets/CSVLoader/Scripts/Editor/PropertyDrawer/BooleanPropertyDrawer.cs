@@ -10,11 +10,13 @@ namespace Sora.Tools.CSVLoader.Editor
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
+            EditorGUI.BeginDisabledGroup(true);
             EditorGUI.BeginProperty(position, label, property);
             property.serializedObject.Update();
             property.FindPropertyRelative("propertyValue").boolValue = EditorGUI.Toggle(position, property.name, property.FindPropertyRelative("propertyValue").boolValue);
             property.serializedObject.ApplyModifiedProperties();
             EditorGUI.EndProperty();
+            EditorGUI.EndDisabledGroup();
         }
     }
 }
