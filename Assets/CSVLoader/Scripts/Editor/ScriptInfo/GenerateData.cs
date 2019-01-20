@@ -108,9 +108,9 @@ namespace Sora.Tools.CSVLoader.Editor
         public float blockHeight;
         public ScriptSetting scriptSetting;
         /// <summary>
-        /// 使用创建的方式生成scriptable asset
+        /// 是否需要创建脚本
         /// </summary>
-        public bool createFlag
+        public bool generateScriptFlag
         {
             get
             {

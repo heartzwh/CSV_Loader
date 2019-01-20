@@ -182,7 +182,7 @@ namespace Sora.Tools.CSVLoader.Editor
                         }
                     }
                     AddHeight(1);
-                    if (!string.IsNullOrEmpty(data.loadFilePath) && !data.createFlag)
+                    if (!string.IsNullOrEmpty(data.loadFilePath) && !data.generateScriptFlag)
                     {
                         AddSpace();
                         var resourceRect = new Rect(inputArea.x, inputHeight, fieldWidth, LINE_HEIGHT);
@@ -306,7 +306,7 @@ namespace Sora.Tools.CSVLoader.Editor
             var isAllLoad = true;
             foreach (var data in generateDataMap.Values)
             {
-                isAllLoad &= !data.createFlag;
+                isAllLoad &= !data.generateScriptFlag;
                 if (!isAllLoad) break;
             }
             if (!isAllLoad)

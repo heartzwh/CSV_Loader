@@ -43,7 +43,7 @@ namespace Sora.Tools.CSVLoader.Editor
         {
             var savePath = string.Format("{1}{0}{2}.cs", CSVLoaderWindow.Seperator(), generateData.scriptFilePath, generateData.scriptSetting.scriptAssetName);
             /* 当前为加载模式,如果文件存在就不需要创建 */
-            if (!generateData.createFlag && File.Exists(savePath)) return;
+            if (!generateData.generateScriptFlag && File.Exists(savePath)) return;
             /* 检测相同脚本 */
             if (generateData.CheckHaveSameScript(generateData.scriptSetting.scriptAssetFullName, true))
             {
@@ -107,7 +107,7 @@ namespace Sora.Tools.CSVLoader.Editor
         public bool CheckSettingComplete()
         {
             var ok = true;
-            if (!generateData.createFlag && assetObject == null)
+            if (!generateData.generateScriptFlag && assetObject == null)
             {
                 generateData.SetState(BlockState.ERROR);
                 Debug.LogError($"\"{generateData.csvFileInfo.Name}\"未设置Asset");
