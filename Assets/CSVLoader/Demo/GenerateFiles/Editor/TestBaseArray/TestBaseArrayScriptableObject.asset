@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5925a6d9897bb45baa763db9c1d29c28, type: 3}
+  m_Name: TestBaseArrayScriptableObject
+  m_EditorClassIdentifier: 
+  dataSet:
+  - target:
+      propertyValue:
+      - ass
+      - target2
+      foldout: 1
+    count:
+      propertyValue: 64000000c8000000
+      foldout: 0
+    radius:
+      propertyValue:
+      - 10.5
+      - 20.5
+      foldout: 0
+    equip:
+      propertyValue: 0101
+      foldout: 0
+  - target:
+      propertyValue:
+      - target3
+      - target4
+      foldout: 0
+    count:
+      propertyValue: 2c01000090010000
+      foldout: 0
+    radius:
+      propertyValue:
+      - 30.5
+      - 40.5
+      foldout: 0
+    equip:
+      propertyValue: 0000
+      foldout: 0

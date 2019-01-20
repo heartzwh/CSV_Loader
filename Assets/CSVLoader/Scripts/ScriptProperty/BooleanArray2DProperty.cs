@@ -5,6 +5,7 @@ using System.Collections.Generic;
 
 namespace Sora.Tools.CSVLoader
 {
+    [System.Serializable]
     public class BooleanArray2DProperty : BaseArray2DProperty<bool[]>
     {
         #region constructor
@@ -18,14 +19,7 @@ namespace Sora.Tools.CSVLoader
 
 
         #region property
-        /// <summary>
-        /// 只能在editor中使用
-        /// </summary>
-        public int width;
-        /// <summary>
-        /// 只能在editor中使用
-        /// </summary>
-        public int height;
+        
         #endregion
 
 

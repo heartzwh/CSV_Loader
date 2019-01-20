@@ -2,7 +2,6 @@
 
 namespace Sora.Tools.CSVLoader
 {
-    public abstract class BaseArray2DProperty { }
     public abstract class BaseArray2DProperty<TValue> : BaseProperty<TValue>
     {
         #region constructor
@@ -16,7 +15,14 @@ namespace Sora.Tools.CSVLoader
 
 
         #region property
-
+        /// <summary>
+        /// 只能在editor中使用
+        /// </summary>
+        public int width;
+        /// <summary>
+        /// 只能在editor中使用
+        /// </summary>
+        public int height;
         #endregion
 
 

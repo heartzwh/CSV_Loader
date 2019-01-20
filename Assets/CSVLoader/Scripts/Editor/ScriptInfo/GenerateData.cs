@@ -1,8 +1,10 @@
 //Author: sora
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using UnityEditor;
 using UnityEngine;
 
 namespace Sora.Tools.CSVLoader.Editor
@@ -28,7 +30,45 @@ namespace Sora.Tools.CSVLoader.Editor
         /// <summary>
         /// 资源文件位置(选择保存位置)
         /// </summary>
-        public string resourceFilePath;
+        public string resourceFilePath
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(m_resourceFilePath))
+                {
+                    /* 未设置资源位置,则使用默认位置 */
+                    if (string.IsNullOrEmpty(CSVLoaderWindow.window.csvSavePathFileRootPath)) return string.Empty;
+                    var folderName = scriptSetting == null ? string.Empty : scriptSetting.scriptName;
+                    var folder = $"{CSVLoaderWindow.window.csvSavePathFileRootPath}/{folderName}";
+                    if (!Directory.Exists(folder))
+                    {
+                        Directory.CreateDirectory(folder);
+                        AssetDatabase.Refresh();
+                    }
+                    return Helper.GetUnityAssetPath($"{folder}/{scriptSetting.scriptAssetName}.asset");
+                }
+                else return m_resourceFilePath;
+            }
+            set => m_resourceFilePath = value;
+        }
+        /// <summary>
+        /// 脚本保存位置
+        /// </summary>
+        public string scriptFilePath
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(CSVLoaderWindow.window.csvSavePathFileRootPath)) return string.Empty;
+                var folderName = scriptSetting == null ? string.Empty : scriptSetting.scriptName;
+                var path = $"{CSVLoaderWindow.window.csvSavePathFileRootPath}/{folderName}";
+                if (!Directory.Exists(path))
+                {
+                    Directory.CreateDirectory(path);
+                    AssetDatabase.Refresh();
+                }
+                return path;
+            }
+        }
         /// <summary>
         /// 创建顺序
         /// </summary>
@@ -44,7 +84,7 @@ namespace Sora.Tools.CSVLoader.Editor
         {
             get
             {
-                return !string.IsNullOrEmpty(resourceFilePath);
+                return !string.IsNullOrEmpty(m_loadFilePath);
             }
         }
         /// <summary>
@@ -61,29 +101,52 @@ namespace Sora.Tools.CSVLoader.Editor
         /// <summary>
         /// 块颜色
         /// </summary>
-        public Color blockColor = NORMALR_COLOR;
+        public Color blockColor = Color.clear;
         /// <summary>
         /// 块高度
         /// </summary>
         public float blockHeight;
         public ScriptSetting scriptSetting;
+        /// <summary>
+        /// 使用创建的方式生成scriptable asset
+        /// </summary>
+        public bool createFlag
+        {
+            get
+            {
+                var create = true;
+                create &= !CheckHaveSameScript(scriptSetting.scriptFullname, false);
+                create &= !CheckHaveSameScript(scriptSetting.scriptAssetFullName, false);
+                return create;
+            }
+        }
         private string m_loadFilePath;
+        private string m_resourceFilePath;
+        private Dictionary<string, bool> sameScriptMap = new Dictionary<string, bool>();
         public GenerateData(int createIndex)
         {
             this.createIndex = createIndex;
         }
         /// <summary>
-        /// 清除块颜色
+        /// 设置块状态
         /// </summary>
-        /// <param name="delayTime"></param>
+        /// <param name="state"></param>
         /// <returns></returns>
-        public async void ClearColor(float delayTime = 1.5f)
+        public async void SetState(BlockState state)
         {
             await Task.Yield();
-            await Task.Delay(System.TimeSpan.FromSeconds(delayTime));
-            blockColor = NORMALR_COLOR;
+            switch (state)
+            {
+                case BlockState.NORMAL:
+                    blockColor = Color.clear;
+                    break;
+                case BlockState.ERROR:
+                    blockColor = new Color(255, 0, 0, 0.5f);
+                    await Task.Delay(System.TimeSpan.FromSeconds(1.5f));
+                    SetState(BlockState.NORMAL);
+                    break;
+            }
         }
-
         /// <summary>
         /// 构建脚本信息
         /// </summary>
@@ -117,9 +180,51 @@ namespace Sora.Tools.CSVLoader.Editor
             scriptAssetData = new ScriptAssetData(this);
         }
 
+        /// <summary>
+        /// 检查是否有相同脚本
+        /// </summary>
+        /// <param name="scriptFullName">脚本全名</param>
+        /// <returns>true: 有相同</returns>
+        public bool CheckHaveSameScript(string scriptFullName, bool withNotification)
+        {
+            if (sameScriptMap.ContainsKey(scriptFullName))
+            {
+                return sameScriptMap[scriptFullName];
+            }
+            var haveSame = false;
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                if (assembly.GetType(scriptFullName) != null)
+                {
+                    if (withNotification) ShowNotificationAndLog($"类\"{scriptFullName}\"已存在");
+                    haveSame = true;
+                    break;
+                }
+            }
+            sameScriptMap.Add(scriptFullName, haveSame);
+            return haveSame;
+        }
+        public void ShowNotificationAndLog(string content)
+        {
+            CSVLoaderWindow.window.ShowNotification(new GUIContent(content));
+            Debug.LogError(content);
+        }
+        /// <summary>
+        /// 检测设置完成
+        /// </summary>
+        /// <returns></returns>
+        public bool CheckSettingComplete()
+        {
+            return scriptAssetData.CheckSettingComplete();
+        }
+
         public const string START_MARK = "@start";
         public const string END_MARK = "@end";
-        public static Color ERROR_COLOR = new Color(255, 0, 0, 0.5f);
-        public static Color NORMALR_COLOR = Color.clear;
+    }
+
+    public enum BlockState
+    {
+        NORMAL,
+        ERROR,
     }
 }

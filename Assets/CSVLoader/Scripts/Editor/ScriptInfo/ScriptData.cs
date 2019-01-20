@@ -22,13 +22,6 @@ namespace Sora.Tools.CSVLoader.Editor
         public ScriptData(GenerateData generateData, string rawDataSource)
         {
             this.generateData = generateData;
-            /* 当前为数据加载,则不检测相同脚本,因为不用生成脚本了 */
-            if (!CSVLoaderWindow.loadDataFlag && CheckHaveSameScript())
-            {
-                generateData.blockColor = GenerateData.ERROR_COLOR;
-                generateData.ClearColor();
-                return;
-            }
             recordPropertyMap = new Dictionary<string, IProperty>();
             scriptRawData = new RawData(rawDataSource);
             if (scriptRawData.width <= 0 || scriptRawData.height <= 0) throw new System.Exception($"{generateData.csvFileInfo.Name}信息缺失");
@@ -73,12 +66,19 @@ namespace Sora.Tools.CSVLoader.Editor
         #region public method
         public void GenerateScript()
         {
-            var savePath = string.Format("{1}{0}{2}.cs", CSVLoaderWindow.Seperator(), CSVLoaderWindow.scriptFilePath, generateData.scriptSetting.scriptName);
+            var savePath = string.Format("{1}{0}{2}.cs", CSVLoaderWindow.Seperator(), generateData.scriptFilePath, generateData.scriptSetting.scriptName);
+            /* 当前为加载模式,如果文件存在就不需要创建 */
+            if (!generateData.createFlag && File.Exists(savePath)) return;
+            /* 检测相同脚本 */
+            if (generateData.CheckHaveSameScript(generateData.scriptSetting.scriptFullname, true))
+            {
+                generateData.SetState(BlockState.ERROR);
+                return;
+            }
             if (File.Exists(savePath))
             {
                 CSVLoaderWindow.window.ShowNotification(new GUIContent($"文件\"{generateData.scriptSetting.scriptName}\"已存在"));
-                generateData.blockColor = GenerateData.ERROR_COLOR;
-                generateData.ClearColor();
+                generateData.SetState(BlockState.ERROR);
                 return;
             }
             StreamWriter sw = File.CreateText(savePath);
@@ -119,7 +119,7 @@ namespace Sora.Tools.CSVLoader.Editor
                 var property = default(IProperty);
                 var range = new RawRange(1, dataSourceColumnIndex, 1, scriptRawData.height - 1);
                 /* 基础模式 */
-                if (generateData.scriptSetting.scriptObjectDataType == ScriptObjectDataType.DEFAULT)
+                if (generateData.scriptSetting.scriptObjectDataType == ScriptObjectDataType.BASE)
                 {
                     switch (propertyData[0])
                     {
@@ -183,8 +183,7 @@ namespace Sora.Tools.CSVLoader.Editor
                 if (recordPropertyMap.ContainsKey(property.propertyName))
                 {
                     CSVLoaderWindow.window.ShowNotification(new GUIContent($"文件\"{generateData.scriptSetting.scriptName}\"存在相同属性名称{property.propertyName}"));
-                    generateData.blockColor = GenerateData.ERROR_COLOR;
-                    generateData.ClearColor();
+                    generateData.SetState(BlockState.ERROR);
                     errorFalg = true;
                     break;
                 }
@@ -193,11 +192,6 @@ namespace Sora.Tools.CSVLoader.Editor
             }
             if (!errorFalg) GenerateScriptContent();
         }
-        private void ResolveArray2DProperty()
-        {
-
-        }
-
         private void GenerateScriptContent()
         {
             var scriptContent = new System.Text.StringBuilder();
@@ -229,20 +223,6 @@ namespace Sora.Tools.CSVLoader.Editor
                 scriptContent.AppendLine(GetTab(tabCount) + "}");
             }
             this.scriptContent = scriptContent.ToString();
-        }
-        private bool CheckHaveSameScript()
-        {
-            var haveSame = false;
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                if (assembly.GetType(generateData.scriptSetting.scriptFullname) != null)
-                {
-                    CSVLoaderWindow.window.ShowNotification(new GUIContent($"类\"{generateData.scriptSetting.scriptFullname}\"已存在"));
-                    haveSame = true;
-                    break;
-                }
-            }
-            return haveSame;
         }
         private string GetTab(int count)
         {

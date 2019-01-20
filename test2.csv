@@ -1,5 +1,0 @@
-@start,A.B.TestClass,default
-string_array#array#3,string#name,int#count
-a,b,c,name1,10
-d,e,f,name2,20
-@end,

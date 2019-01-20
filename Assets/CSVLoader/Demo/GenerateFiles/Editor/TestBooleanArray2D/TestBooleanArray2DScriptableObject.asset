@@ -9,8 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2e709487e3fe7433c99b6ca595024d58, type: 3}
-  m_Name: TestClassScriptableObject
+  m_Script: {fileID: 11500000, guid: b175967ba4cda49b192fac9d7dd603e6, type: 3}
+  m_Name: TestBooleanArray2DScriptableObject
   m_EditorClassIdentifier: 
   dataSet:
     array:

@@ -35,7 +35,7 @@ namespace Sora.Tools.CSVLoader.Editor
             }
             /* 脚本属性 */
             scriptContent.AppendLine($"{GetTab(tabCount)}[System.Serializable]");
-            scriptContent.AppendLine($"{GetTab(tabCount)}public class {generateData.scriptSetting.scriptAssetName} : UnityEngine.ScriptableObject");
+            scriptContent.AppendLine($"{GetTab(tabCount)}public class {generateData.scriptSetting.scriptAssetName} : UnityEngine.ScriptableObject, {typeof(ICSVLoaderAsset).FullName}");
             scriptContent.AppendLine(GetTab(tabCount) + "{");
             tabCount++;
             scriptContent.AppendLine(GetScriptContent(tabCount));
