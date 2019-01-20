@@ -9,9 +9,9 @@ namespace Sora.Tools.CSVLoader.Editor
     public abstract class BaseArray2DPropertyDrawer : BasePropertyDrawer
     {
         protected const float scrollbarHeight = 50f;
-        protected Vector2 scrollPosition { get; private set; }
-        protected int width { get; private set; }
-        protected int height { get; private set; }
+        protected Vector2 scrollPosition;
+        protected int width;
+        protected int height;
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
             return property.FindPropertyRelative("height").intValue * EditorGUIUtility.singleLineHeight + scrollbarHeight;
@@ -34,7 +34,6 @@ namespace Sora.Tools.CSVLoader.Editor
                 {
                     var indexRect = new Rect(position.x + x * itemWidth, position.y + y * EditorGUIUtility.singleLineHeight, itemWidth, EditorGUIUtility.singleLineHeight);
                     var indexProperty = propertyValue.GetArrayElementAtIndex(x + width * y);
-                    // indexProperty.boolValue = EditorGUI.Toggle(indexRect, indexProperty.boolValue);
                     DrawPropertyArray2D(position, property, propertyValue, indexRect, indexProperty);
                 }
             }

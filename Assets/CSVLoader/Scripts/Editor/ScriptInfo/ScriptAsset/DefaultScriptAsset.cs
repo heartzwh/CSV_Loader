@@ -27,6 +27,7 @@ namespace Sora.Tools.CSVLoader.Editor
         #region public method
         public override void InitData()
         {
+            var assembly = CSVLoaderWindow.window.assembly;
             var dataSource = new List<object>();
             /* 从 recordProperty 中获取数据索引 */
             var getPropertyValueIndex = 0;
@@ -35,7 +36,8 @@ namespace Sora.Tools.CSVLoader.Editor
             for (var dataIndex = 1; dataIndex < generateData.scriptData.scriptRawData.height; dataIndex++)
             {
                 /* 添加数据的脚本类 */
-                var script = Assembly.GetAssembly(Type.GetType(generateData.scriptSetting.scriptFullname)).CreateInstance(generateData.scriptSetting.scriptFullname);
+                // UnityEngine.Debug.Log(generateData.scriptSetting.scriptFullname);
+                var script = assembly.CreateInstance(generateData.scriptSetting.scriptFullname);
                 var scriptType = script.GetType();
                 foreach (var field in script.GetType().GetFields())
                 {
@@ -43,7 +45,7 @@ namespace Sora.Tools.CSVLoader.Editor
                     var recordProperty = generateData.scriptData.recordPropertyMap[field.Name];
                     // UnityEngine.Debug.Log("FullName " + recordProperty.GetType().FullName + " " + field.Name + " " + recordProperty.propertyRawData[0, getPropertyValueIndex]);
                     /* Field: IProperty类,所以需要创建 */
-                    var fieldScript = Assembly.GetAssembly(recordProperty.GetType()).CreateInstance(recordProperty.GetType().FullName);
+                    var fieldScript = assembly.CreateInstance(recordProperty.GetType().FullName);
                     var fieldType = fieldScript.GetType();
                     /* fieldInitPropertyMethod: IProperty.InitProperty */
                     var fieldInitPropertyMethod = fieldType.GetMethod("InitProperty");

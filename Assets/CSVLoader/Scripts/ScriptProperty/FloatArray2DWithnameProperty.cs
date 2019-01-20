@@ -1,12 +1,11 @@
 //Author: sora
 
 using System;
-using System.Collections.Generic;
 
 namespace Sora.Tools.CSVLoader
 {
     [System.Serializable]
-    public class StringArray2DProperty : BaseArray2DProperty<string[]>
+    public class FloatArray2DWithnameProperty : BaseArray2DWithnameProperty<float[]>
     {
         #region constructor
 
@@ -27,12 +26,12 @@ namespace Sora.Tools.CSVLoader
         public override void SetPropertyValue(RawData value)
         {
             base.SetPropertyValue(value);
-            propertyValue = new string[width * height];
-            for (var y = 0; y < height; y++)
+            propertyValue = new float[width * height];
+            for (var y = 1; y < height; y++)
             {
-                for (var x = 0; x < width; x++)
+                for (var x = 1; x < width; x++)
                 {
-                    propertyValue[x + width * y] = Convert.ToString(value[x, y]);
+                    propertyValue[x + width * y] = Convert.ToSingle(value[x, y]);
                 }
             }
         }

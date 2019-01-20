@@ -4,13 +4,19 @@ using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 using System.IO;
-using Newtonsoft.Json;
 using System.Threading.Tasks;
+using System.Reflection;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Xml.Serialization;
 
 namespace Sora.Tools.CSVLoader.Editor
 {
     public class CSVLoaderWindow : EditorWindow
     {
+        /// <summary>
+        /// 获取editor之外的assembly,在editor中调用程序集只能获取editor内方法
+        /// </summary>
+        public Assembly assembly { get; private set; }
         /// <summary>
         /// 文件保存位置
         /// </summary>
@@ -34,7 +40,13 @@ namespace Sora.Tools.CSVLoader.Editor
         /// 边距
         /// </summary>
         private const float Margin = 10f;
+        /// <summary>
+        /// 每行高度
+        /// </summary>
         private const float LINE_HEIGHT = 20f;
+        /// <summary>
+        /// 按钮高度
+        /// </summary>
         private const float BUTTON_HEIGHT = 18f;
         /// <summary>
         /// 已经加载的文件路径
@@ -92,6 +104,8 @@ namespace Sora.Tools.CSVLoader.Editor
 
             previewTextAreaStyle = new GUIStyle();
             previewTextAreaStyle.wordWrap = true;
+
+            assembly = typeof(Sora.Tools.CSVLoader.IProperty).Assembly;
         }
         private void OnGUI()
         {
@@ -223,20 +237,9 @@ namespace Sora.Tools.CSVLoader.Editor
             }
             splitLineArea = new Rect(inputArea.x, lastRectHeight + Margin / 2, inputArea.width, splitLineWidth);
             EditorGUI.DrawRect(splitLineArea, new Color(0, 0, 0, 0.6f));
-            var addButtonRect = new Rect(inputArea.x, splitLineArea.yMax + Margin / 2, 50, BUTTON_HEIGHT);
-            var generateButtonRect = new Rect(addButtonRect.xMax + Margin, splitLineArea.yMax + Margin / 2, 50, BUTTON_HEIGHT);
-            if (GUI.Button(addButtonRect, "+"))
-            {
-                generateDataMap.Add(GenerateIndex, new GenerateData(GenerateIndex) { foldout = true });
-                GenerateIndex++;
-            }
-            var createEnable = generateDataMap.Count > 0;
-            foreach (var data in generateDataMap.Values) createEnable &= data.prepareComplete;
-            EditorGUI.BeginDisabledGroup(!createEnable);
-            if (GUI.Button(generateButtonRect, "创建")) GenerateResource();
-            EditorGUI.EndDisabledGroup();
-            var csvFileDirectoryRect = new Rect(inputArea.x, addButtonRect.yMax + Margin / 2, fieldWidth, LINE_HEIGHT);
-            var csvFileDirectoryBurronRect = new Rect(csvFileDirectoryRect.xMax + Margin, addButtonRect.yMax + Margin / 2, buttonWidth, BUTTON_HEIGHT);
+
+            var csvFileDirectoryRect = new Rect(inputArea.x, splitLineArea.yMax + Margin / 2, fieldWidth, LINE_HEIGHT);
+            var csvFileDirectoryBurronRect = new Rect(csvFileDirectoryRect.xMax + Margin, csvFileDirectoryRect.y, buttonWidth, BUTTON_HEIGHT);
             if (tipNoSaveFilePathErrorFlag)
             {
                 EditorGUI.DrawRect(new Rect(csvFileDirectoryRect.x, csvFileDirectoryRect.y, inputArea.width, LINE_HEIGHT), new Color(255, 0, 0, 0.5f));
@@ -256,6 +259,19 @@ namespace Sora.Tools.CSVLoader.Editor
                     csvSavePathFileRootPath = Helper.GetUnityAssetPath(selectPath);
                 }
             }
+
+            var addButtonRect = new Rect(inputArea.x, csvFileDirectoryRect.yMax + Margin / 2, buttonHalfWidth, BUTTON_HEIGHT);
+            var generateButtonRect = new Rect(addButtonRect.xMax + Margin, addButtonRect.y, buttonHalfWidth, BUTTON_HEIGHT);
+            if (GUI.Button(addButtonRect, "+"))
+            {
+                generateDataMap.Add(GenerateIndex, new GenerateData(GenerateIndex) { foldout = true });
+                GenerateIndex++;
+            }
+            var createEnable = generateDataMap.Count > 0;
+            foreach (var data in generateDataMap.Values) createEnable &= data.prepareComplete;
+            EditorGUI.BeginDisabledGroup(!createEnable);
+            if (GUI.Button(generateButtonRect, "GO!!!")) GenerateResource();
+            EditorGUI.EndDisabledGroup();
             #endregion 输入区域
 
             #region 预览区域
@@ -315,12 +331,11 @@ namespace Sora.Tools.CSVLoader.Editor
                 foreach (var generateData in generateDataMap.Values)
                 {
                     var dataRecorder = new GenreateDataRecorder();
-                    // dataRecorder.createFlag = generateData.createFlag;
                     dataRecorder.loadFilePath = generateData.loadFilePath;
                     dataRecorder.resourceFilePath = generateData.resourceFilePath;
                     dataRecorderMap.Add(dataRecorder);
                 }
-                EditorPrefs.SetString("Data", JsonConvert.SerializeObject(dataRecorderMap));
+                EditorPrefs.SetString("Data", SerializeToXml(dataRecorderMap));
                 foreach (var data in generateDataMap.Values)
                 {
                     data.scriptData.GenerateScript();
@@ -334,7 +349,6 @@ namespace Sora.Tools.CSVLoader.Editor
                 foreach (var dataRecorder in generateDataMap.Values)
                 {
                     var generateData = new GenerateData(0);
-                    // generateData.createFlag = dataRecorder.createFlag;
                     generateData.loadFilePath = dataRecorder.loadFilePath;
                     generateData.resourceFilePath = dataRecorder.resourceFilePath;
                     generateDataList.Add(generateData);
@@ -376,7 +390,6 @@ namespace Sora.Tools.CSVLoader.Editor
             if (!string.IsNullOrEmpty(saveFilePath))
             {
                 m_csvSavePathFileRootPath = $"{Helper.DataPathWithoutAssets()}{Seperator()}{saveFilePath}";
-                Debug.Log(m_csvSavePathFileRootPath);
             }
             else m_csvSavePathFileRootPath = string.Empty;
         }
@@ -385,6 +398,37 @@ namespace Sora.Tools.CSVLoader.Editor
             await Task.Yield();
             await Task.Delay(System.TimeSpan.FromSeconds(time));
             completeAction?.Invoke();
+        }
+        /// <summary>
+        /// 将对象序列化为XML数据
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public static string SerializeToXml(object obj)
+        {
+            MemoryStream stream = new MemoryStream();
+            XmlSerializer xs = new XmlSerializer(obj.GetType());
+            xs.Serialize(stream, obj);
+            byte[] data = stream.ToArray();
+            stream.Close();
+            return System.Text.Encoding.Default.GetString(data);
+        }
+        /// <summary>
+        /// 将XML数据反序列化为指定类型对象
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static T DeserializeWithXml<T>(string dataStr)
+        {
+            byte[] data = System.Text.Encoding.Default.GetBytes(dataStr);
+            MemoryStream stream = new MemoryStream();
+            stream.Write(data, 0, data.Length);
+            stream.Position = 0;
+            XmlSerializer xs = new XmlSerializer(typeof(T));
+            object obj = xs.Deserialize(stream);
+            stream.Close();
+            return (T)obj;
         }
         /// <summary>
         /// 当脚本加载完成后,生成保存数据的资源
@@ -396,14 +440,13 @@ namespace Sora.Tools.CSVLoader.Editor
             EditorPrefs.DeleteKey("Data");
             if (!string.IsNullOrEmpty(data))
             {
-                var dataRecorderMap = JsonConvert.DeserializeObject<List<GenreateDataRecorder>>(data);
+                var dataRecorderMap = DeserializeWithXml<List<GenreateDataRecorder>>(data);
                 if (dataRecorderMap != null && dataRecorderMap.Count > 0)
                 {
                     var generateDataMap = new List<GenerateData>();
                     foreach (var dataRecorder in dataRecorderMap)
                     {
                         var generateData = new GenerateData(0);
-                        // generateData.createFlag = dataRecorder.createFlag;
                         generateData.loadFilePath = dataRecorder.loadFilePath;
                         generateData.resourceFilePath = dataRecorder.resourceFilePath;
                         generateDataMap.Add(generateData);
@@ -444,9 +487,9 @@ namespace Sora.Tools.CSVLoader.Editor
     /// <summary>
     /// 创建的资源csv需要的数据
     /// </summary>
+    [System.Serializable]
     public class GenreateDataRecorder
     {
-        // public bool createFlag;
         public string loadFilePath;
         public string resourceFilePath;
     }

@@ -26,8 +26,9 @@ namespace Sora.Tools.CSVLoader.Editor
         #region public method
         public override void InitData()
         {
+            var assembly = CSVLoaderWindow.window.assembly;
             /* 添加数据的脚本类 */
-            var script = Assembly.GetAssembly(Type.GetType(generateData.scriptSetting.scriptFullname)).CreateInstance(generateData.scriptSetting.scriptFullname);
+            var script = assembly.CreateInstance(generateData.scriptSetting.scriptFullname);
             var scriptType = script.GetType();
             foreach (var field in script.GetType().GetFields())
             {
@@ -35,7 +36,7 @@ namespace Sora.Tools.CSVLoader.Editor
                 var recordProperty = generateData.scriptData.recordPropertyMap[field.Name];
                 // UnityEngine.Debug.Log("FullName " + recordProperty.GetType().FullName + " " + field.Name);
                 /* Field: IProperty类,所以需要创建 */
-                var fieldScript = Assembly.GetAssembly(recordProperty.GetType()).CreateInstance(recordProperty.GetType().FullName);
+                var fieldScript = assembly.CreateInstance(recordProperty.GetType().FullName);
                 var fieldType = fieldScript.GetType();
                 /* fieldInitPropertyMethod: IProperty.InitProperty */
                 var fieldInitPropertyMethod = fieldType.GetMethod("InitProperty");
@@ -47,7 +48,6 @@ namespace Sora.Tools.CSVLoader.Editor
                 fieldSetPropertyValueMethod.Invoke(fieldScript, new object[] { recordProperty.propertyRawData });
                 scriptType.GetField(field.Name).SetValue(script, fieldScript);
             }
-
             /* 创建的 ScriptableObjectAsset ,添加所有创建的数据 */
             var scriptAssetSetDataMethod = generateData.scriptAssetData.assetObject.GetType().GetField(PROPERTY_NAME_DATASET);
             scriptAssetSetDataMethod.SetValue(generateData.scriptAssetData.assetObject, script);

@@ -1,0 +1,8 @@
+数据支持[string][int][float][bool]
+bool#array2d#2: bool: 数据类型;array2d: 数据名称;2: 数据长度(使用#分隔)
+@start,Sora.Tools.CSVLoader.TestFloatArray2DWithname,array2dwithname
+float#array#2
+,IsTarget,CanTrap
+IsTarget,100.222,1
+CanTrap,10.011,2
+@end,

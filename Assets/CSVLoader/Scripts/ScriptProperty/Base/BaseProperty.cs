@@ -24,14 +24,19 @@ namespace Sora.Tools.CSVLoader
         public Type propertyValueType { get; protected set; }
 
         public RawData propertyRawData { get; private set; }
-        
+
         public RawRange propertyRange { get; set; }
 
         public string propertyContent { get; private set; }
 
         public string propertyName { get; private set; }
         /// <summary>
-        /// 属性值.
+        /// 属性值
+        /// </summary>
+        /// <value></value>
+        public TValue Value { get { return propertyValue; } }
+        /// <summary>
+        /// 属性值.不要调用
         /// 只能在CSV文件中修改
         /// </summary>
         public TValue propertyValue;

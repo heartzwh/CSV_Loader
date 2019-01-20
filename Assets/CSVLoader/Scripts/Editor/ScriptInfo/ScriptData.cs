@@ -68,7 +68,7 @@ namespace Sora.Tools.CSVLoader.Editor
         {
             var savePath = string.Format("{1}{0}{2}.cs", CSVLoaderWindow.Seperator(), generateData.scriptFilePath, generateData.scriptSetting.scriptName);
             /* 当前为加载模式,如果文件存在就不需要创建 */
-            if (!generateData.createFlag && File.Exists(savePath)) return;
+            if (!generateData.generateScriptFlag && File.Exists(savePath)) return;
             /* 检测相同脚本 */
             if (generateData.CheckHaveSameScript(generateData.scriptSetting.scriptFullname, true))
             {
@@ -174,6 +174,29 @@ namespace Sora.Tools.CSVLoader.Editor
                         case "bool":
                             property = new BooleanArray2DProperty();
                             range.width = Convert.ToInt32(propertyData[2]);
+                            break;
+                        default: throw new System.Exception($"\"{generateData.loadFilePath}\"未定义类型\"{propertyData[0]}\"");
+                    }
+                }
+                else if (generateData.scriptSetting.scriptObjectDataType == ScriptObjectDataType.ARRAY2DWITHNAME)
+                {
+                    switch (propertyData[0])
+                    {
+                        case "int":
+                            property = new IntArray2DWithnameProperty();
+                            range.width = Convert.ToInt32(propertyData[2]) + 1;
+                            break;
+                        case "float":
+                            property = new FloatArray2DWithnameProperty();
+                            range.width = Convert.ToInt32(propertyData[2]) + 1;
+                            break;
+                        case "string":
+                            property = new StringArray2DWithnameProperty();
+                            range.width = Convert.ToInt32(propertyData[2]) + 1;
+                            break;
+                        case "bool":
+                            property = new BooleanArray2DWithnameProperty();
+                            range.width = Convert.ToInt32(propertyData[2]) + 1;
                             break;
                         default: throw new System.Exception($"\"{generateData.loadFilePath}\"未定义类型\"{propertyData[0]}\"");
                     }

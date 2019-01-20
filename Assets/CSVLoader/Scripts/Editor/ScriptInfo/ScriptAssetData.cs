@@ -132,6 +132,7 @@ namespace Sora.Tools.CSVLoader.Editor
                     scriptAsset = new DefaultScriptAsset();
                     break;
                 case ScriptObjectDataType.ARRAY2D:
+                case ScriptObjectDataType.ARRAY2DWITHNAME:
                     scriptAsset = new Array2DScriptAsset();
                     break;
                 default: throw new System.Exception($"未定义的类型{generateData.scriptSetting.scriptObjectDataType}");

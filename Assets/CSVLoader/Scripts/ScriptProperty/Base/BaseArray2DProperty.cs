@@ -27,7 +27,11 @@ namespace Sora.Tools.CSVLoader
 
 
         #region public method
-
+        public override void SetPropertyValue(RawData value)
+        {
+            width = value.width;
+            height = value.height;
+        }
         #endregion
 
 

@@ -26,8 +26,7 @@ namespace Sora.Tools.CSVLoader
         #region public method
         public override void SetPropertyValue(RawData value)
         {
-            width = value.width;
-            height = value.height;
+            base.SetPropertyValue(value);
             propertyValue = new float[width * height];
             for (var y = 0; y < height; y++)
             {
