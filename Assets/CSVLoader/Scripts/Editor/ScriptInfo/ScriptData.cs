@@ -114,7 +114,15 @@ namespace Sora.Tools.CSVLoader.Editor
             {
                 var propertyRawData = propertyRaw[columnIndex];
                 var propertyData = propertyRawData.Split(Helper.SETTING_SPLIT);
-                if (propertyData[0].Equals(RawData.EMPTY_DATA)) continue;
+                if (propertyData[0].Equals(RawData.FILLING_DATA)) continue;
+                /* 整竖行都是空,则忽略该竖行 */
+                var columnIsEmpty = true;
+                for (var y = 0; y < scriptRawData.height; y++)
+                {
+                    columnIsEmpty &= string.IsNullOrEmpty(scriptRawData[columnIndex, y]);
+                    if (!columnIsEmpty) break;
+                }
+                if (columnIsEmpty) continue;
                 if (!valiblePropertySet.Contains(propertyData[0])) throw new System.Exception($"未包含属性{propertyData[0]}");
                 var property = default(IProperty);
                 var range = new RawRange(1, dataSourceColumnIndex, 1, scriptRawData.height - 1);
@@ -138,18 +146,26 @@ namespace Sora.Tools.CSVLoader.Editor
                         case "int_array":
                             property = new IntArrayProperty();
                             range.width = Convert.ToInt32(propertyData[2]);
+                            /* 为了适应数据宽度超过属性栏宽度 */
+                            columnIndex += range.width - 1;
                             break;
                         case "float_array":
                             property = new FloatArrayProperty();
                             range.width = Convert.ToInt32(propertyData[2]);
+                            /* 为了适应数据宽度超过属性栏宽度 */
+                            columnIndex += range.width - 1;
                             break;
                         case "string_array":
                             property = new StringArrayProperty();
                             range.width = Convert.ToInt32(propertyData[2]);
+                            /* 为了适应数据宽度超过属性栏宽度 */
+                            columnIndex += range.width - 1;
                             break;
                         case "bool_array":
                             property = new BooleanArrayProperty();
                             range.width = Convert.ToInt32(propertyData[2]);
+                            /* 为了适应数据宽度超过属性栏宽度 */
+                            columnIndex += range.width - 1;
                             break;
                         default: throw new System.Exception($"\"{generateData.loadFilePath}\"未定义类型\"{propertyData[0]}\"");
                     }

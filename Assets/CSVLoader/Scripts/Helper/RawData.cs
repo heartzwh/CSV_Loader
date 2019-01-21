@@ -42,7 +42,7 @@ namespace Sora.Tools.CSVLoader
                     /* 所以,当超过自身行宽度时,使用 [EMPTY_DATA] 来填充 */
                     if (x < line.Length)
                         rowData[x, y] = line[x];
-                    else rowData[x, y] = EMPTY_DATA;
+                    else rowData[x, y] = FILLING_DATA;
                 }
             }
         }
@@ -154,7 +154,10 @@ namespace Sora.Tools.CSVLoader
 
 
         #region static
-        public const string EMPTY_DATA = "EMPTY_DATA";
+        /// <summary>
+        /// 填充数据
+        /// </summary>
+        public const string FILLING_DATA = "FILLING_DATA";
         #endregion
     }
 }
