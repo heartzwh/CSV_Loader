@@ -122,7 +122,11 @@ namespace Sora.Tools.CSVLoader.Editor
                     columnIsEmpty &= string.IsNullOrEmpty(scriptRawData[columnIndex, y]);
                     if (!columnIsEmpty) break;
                 }
-                if (columnIsEmpty) continue;
+                if (columnIsEmpty)
+                {
+                    dataSourceColumnIndex++;
+                    continue;
+                }
                 if (!valiblePropertySet.Contains(propertyData[0])) throw new System.Exception($"未包含属性{propertyData[0]}");
                 var property = default(IProperty);
                 var range = new RawRange(1, dataSourceColumnIndex, 1, scriptRawData.height - 1);
