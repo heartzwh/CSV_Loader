@@ -31,7 +31,8 @@ namespace Sora.Tools.CSVLoader
             {
                 for (var x = 1; x < width; x++)
                 {
-                    propertyValue[x + width * y] = Convert.ToSingle(value[x, y]);
+                    var valueStr = value[x, y];
+                    propertyValue[x + width * y] = string.IsNullOrEmpty(valueStr) ? 0f : Convert.ToSingle(valueStr);
                 }
             }
         }

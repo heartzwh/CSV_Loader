@@ -18,16 +18,11 @@ namespace Sora.Tools.CSVLoader.Editor
         /// </summary>
         public Assembly assembly { get; private set; }
         /// <summary>
-        /// 文件保存位置
-        /// </summary>
-        private string lastSaveFilePath;
-        /// <summary>
         /// 需要创建的文件信息
         /// int: 创建id
         /// CreateData: 创建信息
         /// </summary>
         private Dictionary<int, GenerateData> generateDataMap;
-        private Vector2 miniSize;
         /// <summary>
         /// 输入窗口最小宽度
         /// </summary>
@@ -73,7 +68,7 @@ namespace Sora.Tools.CSVLoader.Editor
             {
                 if (m_csvSavePathFileRootPath != value)
                 {
-                    var filePath = $"{UnityEngine.Application.dataPath}{CSVLoaderWindow.Seperator()}CSVLoader/SavePathFile.txt";
+                    var filePath = $"{UnityEngine.Application.dataPath}{CSVLoaderWindow.Seperator()}CSVLoader/Scripts/Editor/SavePathFile.txt";
                     if (!File.Exists(filePath)) File.CreateText(filePath);
                     var writeFileSteam = new StreamWriter(filePath);
                     writeFileSteam.Write(value);
@@ -132,6 +127,24 @@ namespace Sora.Tools.CSVLoader.Editor
             });
             foreach (var data in dataCopy)
             {
+                if (data.sameFileFlag)
+                {
+                    data.sameFileFlag = false;
+                    data.SetState(BlockState.NORMAL);
+                }
+                foreach (var dataCheckSame in dataCopy)
+                {
+                    if (data.createIndex.Equals(dataCheckSame.createIndex)) continue;
+                    if (string.IsNullOrEmpty(data.loadFilePath)) continue;
+                    if (string.IsNullOrEmpty(dataCheckSame.loadFilePath)) continue;
+                    if (dataCheckSame.loadFilePath.Equals(data.loadFilePath))
+                    {
+                        data.sameFileFlag = true;
+                        dataCheckSame.sameFileFlag = true;
+                        data.SetState(BlockState.ERROR, false);
+                        dataCheckSame.SetState(BlockState.ERROR, false);
+                    }
+                }
                 if (!data.blockHeight.Equals(0))
                 {
                     var blockRect = new Rect(inputArea.x, inputHeight, inputArea.width, data.blockHeight);
@@ -270,7 +283,7 @@ namespace Sora.Tools.CSVLoader.Editor
             var createEnable = generateDataMap.Count > 0;
             foreach (var data in generateDataMap.Values) createEnable &= data.prepareComplete;
             EditorGUI.BeginDisabledGroup(!createEnable);
-            if (GUI.Button(generateButtonRect, "GO!!!")) GenerateResource();
+            if (GUI.Button(generateButtonRect, "GO!")) GenerateResource();
             EditorGUI.EndDisabledGroup();
             #endregion 输入区域
 
@@ -375,10 +388,10 @@ namespace Sora.Tools.CSVLoader.Editor
         private void LoadSaveFilePathFile()
         {
             var saveFilePath = string.Empty;
-            var filePath = $"{UnityEngine.Application.dataPath}{CSVLoaderWindow.Seperator()}CSVLoader/SavePathFile.txt";
+            var filePath = $"{UnityEngine.Application.dataPath}{CSVLoaderWindow.Seperator()}CSVLoader/Scripts/Editor/SavePathFile.txt";
             if (!File.Exists(filePath))
             {
-                File.CreateText(filePath);
+                File.Create(filePath);
                 AssetDatabase.Refresh();
             }
             else

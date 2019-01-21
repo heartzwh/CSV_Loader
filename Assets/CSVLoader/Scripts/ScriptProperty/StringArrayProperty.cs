@@ -12,7 +12,7 @@ namespace Sora.Tools.CSVLoader
             if (propertyValue == null) propertyValue = new string[value.width];
             for (var index = 0; index < value.width; index++)
             {
-                propertyValue[index] = Convert.ToString(value[index, 0]);
+                propertyValue[index] = value[index, 0];
             }
         }
 	}

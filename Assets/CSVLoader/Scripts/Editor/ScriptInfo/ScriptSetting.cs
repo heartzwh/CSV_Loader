@@ -13,7 +13,10 @@ namespace Sora.Tools.CSVLoader.Editor
             /* 类信息: 命名空间.类名称 */
             var namespaceString = setting[0];
             var lastDotIndex = namespaceString.LastIndexOf('.');
-            namespaceName = namespaceString.Substring(0, lastDotIndex);
+            if (!lastDotIndex.Equals(-1))
+            {
+                namespaceName = namespaceString.Substring(0, lastDotIndex);
+            }
             scriptName = namespaceString.Substring(lastDotIndex + 1);
             scriptFullname = namespaceString;
             if (setting.Length < 2) throw new System.Exception($"{generateData.csvFileInfo.Name}未写script object设置");

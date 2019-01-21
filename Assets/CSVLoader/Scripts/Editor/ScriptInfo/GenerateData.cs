@@ -120,6 +120,7 @@ namespace Sora.Tools.CSVLoader.Editor
                 return create;
             }
         }
+        public bool sameFileFlag = false;
         private string m_loadFilePath;
         private string m_resourceFilePath;
         private Dictionary<string, bool> sameScriptMap = new Dictionary<string, bool>();
@@ -132,7 +133,7 @@ namespace Sora.Tools.CSVLoader.Editor
         /// </summary>
         /// <param name="state"></param>
         /// <returns></returns>
-        public async void SetState(BlockState state)
+        public async void SetState(BlockState state, bool withDelay = true)
         {
             await Task.Yield();
             switch (state)
@@ -142,8 +143,11 @@ namespace Sora.Tools.CSVLoader.Editor
                     break;
                 case BlockState.ERROR:
                     blockColor = new Color(255, 0, 0, 0.5f);
-                    await Task.Delay(System.TimeSpan.FromSeconds(1.5f));
-                    SetState(BlockState.NORMAL);
+                    if (withDelay)
+                    {
+                        await Task.Delay(System.TimeSpan.FromSeconds(1.5f));
+                        SetState(BlockState.NORMAL);
+                    }
                     break;
             }
         }

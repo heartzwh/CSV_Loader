@@ -25,7 +25,8 @@ namespace Sora.Tools.CSVLoader
         #region public method
         public override void SetPropertyValue(RawData value)
         {
-            propertyValue = Convert.ToSingle(value[0, 0]);
+            var valueStr = value[0, 0];
+            propertyValue = string.IsNullOrEmpty(valueStr) ? 0f : Convert.ToSingle(valueStr);
         }
         #endregion
 

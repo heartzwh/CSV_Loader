@@ -28,7 +28,8 @@ namespace Sora.Tools.CSVLoader
             propertyValue = new bool[value.width];
             for (var index = 0; index < value.width; index++)
             {
-                propertyValue[index] = Convert.ToBoolean(value[index, 0]);
+                var valueStr = value[index, 0];
+                propertyValue[index] = string.IsNullOrEmpty(valueStr) ? false : Convert.ToBoolean(valueStr);
             }
         }
         #endregion

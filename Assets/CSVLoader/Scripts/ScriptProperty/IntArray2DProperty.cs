@@ -17,7 +17,7 @@ namespace Sora.Tools.CSVLoader.Editor
         #endregion
 
         #region property
-        
+
         #endregion
 
 
@@ -30,7 +30,8 @@ namespace Sora.Tools.CSVLoader.Editor
             {
                 for (var x = 0; x < width; x++)
                 {
-                    propertyValue[x + width * y] = Convert.ToInt32(value[x, y]);
+                    var valueStr = value[x, y];
+                    propertyValue[x + width * y] = string.IsNullOrEmpty(valueStr) ? 0 : Convert.ToInt32(valueStr);
                 }
             }
         }

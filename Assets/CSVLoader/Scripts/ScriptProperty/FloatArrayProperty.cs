@@ -28,7 +28,8 @@ namespace Sora.Tools.CSVLoader
             if (propertyValue == null) propertyValue = new float[value.width];
             for (var index = 0; index < value.width; index++)
             {
-                propertyValue[index] = Convert.ToSingle(value[index, 0]);
+                var valueStr = value[index, 0];
+                propertyValue[index] = string.IsNullOrEmpty(valueStr) ? 0f : Convert.ToSingle(valueStr);
             }
         }
 
