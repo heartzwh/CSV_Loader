@@ -21,8 +21,8 @@ namespace Sora.Tools.CSVLoader.Editor
             scriptFullname = namespaceString;
             if (setting.Length < 2) throw new System.Exception($"{generateData.csvFileInfo.Name}未写script object设置");
             /* script object信息: 数据显示方式 */
-            scriptAssetName = $"{scriptName}ScriptableObject";
-            scriptAssetFullName = $"{scriptFullname}ScriptableObject";
+            scriptAssetName = $"{scriptName}Source";
+            scriptAssetFullName = $"{scriptFullname}Source";
             scriptObjectDataType = (ScriptObjectDataType)System.Enum.Parse(typeof(ScriptObjectDataType), setting[1].ToUpper());
         }
         #endregion
