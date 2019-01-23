@@ -1,13 +1,10 @@
 //Author: sora
 
-using System;
 using System.Collections.Generic;
-using System.Reflection;
-using UnityEditor;
 
 namespace Sora.Tools.CSVLoader.Editor
 {
-    public class DefaultScriptAsset : BaseScriptAsset
+    public class DictionayScriptAsset : BaseScriptAsset
     {
         #region constructor
 
@@ -66,39 +63,72 @@ namespace Sora.Tools.CSVLoader.Editor
             var scriptAssetSetDataMethod = generateData.scriptAssetData.assetObject.GetType().GetMethod(METHOD_NAME_SETDATA);
             scriptAssetSetDataMethod.Invoke(generateData.scriptAssetData.assetObject, new object[] { dataSource });
         }
+
         #endregion
 
 
         #region protected method
         protected override string GetScriptContent(int tabCount)
         {
+            var keyType = "";
+            var valueType = generateData.scriptSetting.scriptName;
+            foreach (var property in generateData.scriptData.recordPropertyMap.Values)
+            {
+                if (property is IDictionaryKey)
+                {
+                    keyType = property.propertyValueType.FullName;
+                }
+            }
+            if (string.IsNullOrEmpty(keyType)) throw new System.Exception($"\"{generateData.csvFileInfo.Name}\"key为空???");
             var scriptContent = new System.Text.StringBuilder();
             /* 此处定义为属性为Filed */
-            scriptContent.AppendLine($"{GetTab(tabCount)}public System.Collections.Generic.List<{generateData.scriptSetting.scriptName}> {PROPERTY_NAME_DATASET};");
+            scriptContent.AppendLine($"{GetTab(tabCount)}public System.Collections.Generic.Dictionary<{keyType}, {valueType}> {PROPERTY_NAME_DATASET};");
             scriptContent.AppendLine();
             /* 定义添加数据函数 */
             scriptContent.AppendLine($"{GetTab(tabCount)}public void {METHOD_NAME_SETDATA}(System.Collections.Generic.List<object> dataSetSource)");
             scriptContent.AppendLine(GetTab(tabCount) + "{");
             tabCount++;
-            scriptContent.AppendLine($"{GetTab(tabCount)}{PROPERTY_NAME_DATASET} = new System.Collections.Generic.List<{generateData.scriptSetting.scriptName}>();");
+            scriptContent.AppendLine($"{GetTab(tabCount)}{PROPERTY_NAME_DATASET} = new System.Collections.Generic.Dictionary<{keyType}, {valueType}>();");
             scriptContent.AppendLine($"{GetTab(tabCount)}foreach (var data in dataSetSource)");
             scriptContent.AppendLine(GetTab(tabCount) + "{");
             tabCount++;
-            scriptContent.AppendLine($"{GetTab(tabCount)}{PROPERTY_NAME_DATASET}.Add(data as {generateData.scriptSetting.scriptName});");
+            scriptContent.AppendLine($"{GetTab(tabCount)}var fields = data.GetType().GetFields();");
+            scriptContent.AppendLine($"{GetTab(tabCount)}foreach (var field in fields)");
+            scriptContent.AppendLine(GetTab(tabCount) + "{");
+            tabCount++;
+            scriptContent.AppendLine($"{GetTab(tabCount)}if (field.FieldType is Sora.Tools.CSVLoader.IDictionaryKey)");
+            scriptContent.AppendLine(GetTab(tabCount) + "{");
+            tabCount++;
+            scriptContent.AppendLine($"{GetTab(tabCount)}var fieldValue = (field as Sora.Tools.CSVLoader.IProperty<{keyType}>).Value;");
+            scriptContent.AppendLine($"{GetTab(tabCount)}dataSet.Add(fieldValue, data as {valueType});");
+            scriptContent.AppendLine($"{GetTab(tabCount)}break;");
+            tabCount--;
+            scriptContent.AppendLine(GetTab(tabCount) + "}");
+            tabCount--;
+            scriptContent.AppendLine(GetTab(tabCount) + "}");
             tabCount--;
             scriptContent.AppendLine(GetTab(tabCount) + "}");
             tabCount--;
             scriptContent.AppendLine(GetTab(tabCount) + "}");
             return scriptContent.ToString();
             /* 内容为
-            public System.Collections.Generic.List<CLASS_NAME> dataSet;
+            public System.Collections.Generic.Dictionary<KEYTYPE, VALUETYPE> dataSet;
 
             public void SetData(System.Collections.Generic.List<object> dataSetSource)
             {
-                dataSet = new System.Collections.Generic.List<CLASS_NAME>();
+                dataSet = new System.Collections.Generic.Dictionary<KEYTYPE, VALUETYPE>();
                 foreach (var data in dataSetSource)
                 {
-                    dataSet.Add(data as CLASS_NAME);
+                    var fields = data.GetType().GetFields();
+                    foreach (var field in fields)
+                    {
+                        if (field.FieldType is Sora.Tools.CSVLoader.IDictionaryKey)
+                        {
+                            var fieldValue = (field as Sora.Tools.CSVLoader.IProperty<KEYTYPE>).Value;
+                            dataSet.Add(fieldValue, data as VALUETYPE);
+                            break;
+                        }
+                    }
                 }
             }
             */
@@ -115,4 +145,26 @@ namespace Sora.Tools.CSVLoader.Editor
 
         #endregion
     }
+    // public class Test
+    // {
+    //     public System.Collections.Generic.Dictionary<KEYTYPE, VALUETYPE> dataSet;
+
+    //     public void SetData(System.Collections.Generic.List<object> dataSetSource)
+    //     {
+    //         dataSet = new System.Collections.Generic.Dictionary<KEYTYPE, VALUETYPE>();
+    //         foreach (var data in dataSetSource)
+    //         {
+    //             var fields = data.GetType().GetFields();
+    //             foreach (var field in fields)
+    //             {
+    //                 if (field.FieldType is Sora.Tools.CSVLoader.IDictionaryKey)
+    //                 {
+    //                     var fieldValue = (field as Sora.Tools.CSVLoader.IProperty<KEYTYPE>).Value;
+    //                     dataSet.Add(fieldValue, data);
+    //                     break;
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 }

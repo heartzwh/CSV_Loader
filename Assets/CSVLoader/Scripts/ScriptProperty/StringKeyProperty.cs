@@ -5,7 +5,7 @@ using System;
 namespace Sora.Tools.CSVLoader
 {
     [Serializable]
-    public class IntProperty : BaseProperty<int>
+    public class StringKeyProperty : BaseKeyProperty<string>
     {
         #region constructor
 
@@ -25,8 +25,7 @@ namespace Sora.Tools.CSVLoader
         #region public method
         public override void SetPropertyValue(RawData value)
         {
-            var valueStr = value[0, 0];
-            propertyValue = string.IsNullOrEmpty(valueStr) ? 0 : Convert.ToInt32(valueStr);
+            propertyValue = value[0, 0];
         }
 
         #endregion

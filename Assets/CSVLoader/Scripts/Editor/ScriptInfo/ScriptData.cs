@@ -58,7 +58,6 @@ namespace Sora.Tools.CSVLoader.Editor
         private HashSet<string> valiblePropertySet = new HashSet<string>()
         {
             "int", "float", "string", "bool",
-            "int_array", "float_array", "string_array", "bool_array"
         };
         #endregion
 
@@ -104,7 +103,7 @@ namespace Sora.Tools.CSVLoader.Editor
             /* [0] 属性定义行 */
             /* 属性定义样式 */
             /*
-                int,float,string,bool,int_array,float_array,string_array,bool_array: TYPE#PROPERTY_NAME(类型#属性名称)
+                int,float,string,bool: TYPE#PROPERTY_NAME(类型#属性名称#特殊设置)
             */
             var propertyRaw = scriptRawData.GetRow(0);
             /* 读取一次属性后,到下一个属性步进值,需要根据当前属性数据占用范围来计算 */
@@ -127,51 +126,81 @@ namespace Sora.Tools.CSVLoader.Editor
                     dataSourceColumnIndex++;
                     continue;
                 }
+                if (string.IsNullOrEmpty(propertyRawData)) continue;
                 if (!valiblePropertySet.Contains(propertyData[0])) throw new System.Exception($"未包含属性{propertyData[0]}");
                 var property = default(IProperty);
                 var range = new RawRange(1, dataSourceColumnIndex, 1, scriptRawData.height - 1);
                 /* 基础模式 */
-                if (generateData.scriptSetting.scriptObjectDataType == ScriptObjectDataType.BASE)
+                if (generateData.scriptSetting.scriptObjectDataType == ScriptObjectDataType.BASE ||
+                /* 字典模式 */
+                    generateData.scriptSetting.scriptObjectDataType == ScriptObjectDataType.DICTIONARY)
                 {
-                    switch (propertyData[0])
+                    /* 解析为数组 */
+                    if (propertyData.Length >= 3 && int.TryParse(propertyData[2], out var width))
                     {
-                        case "int":
-                            property = new IntProperty();
-                            break;
-                        case "float":
-                            property = new FloatProperty();
-                            break;
-                        case "string":
-                            property = new StringProperty();
-                            break;
-                        case "bool":
-                            property = new BooleanProperty();
-                            break;
-                        case "int_array":
-                            property = new IntArrayProperty();
-                            range.width = Convert.ToInt32(propertyData[2]);
-                            /* 为了适应数据宽度超过属性栏宽度 */
-                            columnIndex += range.width - 1;
-                            break;
-                        case "float_array":
-                            property = new FloatArrayProperty();
-                            range.width = Convert.ToInt32(propertyData[2]);
-                            /* 为了适应数据宽度超过属性栏宽度 */
-                            columnIndex += range.width - 1;
-                            break;
-                        case "string_array":
-                            property = new StringArrayProperty();
-                            range.width = Convert.ToInt32(propertyData[2]);
-                            /* 为了适应数据宽度超过属性栏宽度 */
-                            columnIndex += range.width - 1;
-                            break;
-                        case "bool_array":
-                            property = new BooleanArrayProperty();
-                            range.width = Convert.ToInt32(propertyData[2]);
-                            /* 为了适应数据宽度超过属性栏宽度 */
-                            columnIndex += range.width - 1;
-                            break;
-                        default: throw new System.Exception($"\"{generateData.loadFilePath}\"未定义类型\"{propertyData[0]}\"");
+                        switch (propertyData[0])
+                        {
+                            case "int":
+                                property = new IntArrayProperty();
+                                break;
+                            case "float":
+                                property = new FloatArrayProperty();
+                                break;
+                            case "string":
+                                property = new StringArrayProperty();
+                                break;
+                            case "bool":
+                                property = new BooleanArrayProperty();
+                                break;
+                            default: throw new System.Exception($"\"{generateData.loadFilePath}\"未定义类型\"{propertyData[0]}\"");
+                        }
+                        range.width = Convert.ToInt32(width);
+                        /* 为了适应数据宽度超过属性栏宽度 */
+                        columnIndex += range.width - 1;
+                    }
+                    else
+                    {
+                        var generateFlag = true;
+                        /* 字典模式并且属性为key */
+                        if (generateData.scriptSetting.scriptObjectDataType == ScriptObjectDataType.DICTIONARY &&
+                            propertyData.Length >= 3 &&
+                            propertyRawData.ToLower().EndsWith("key"))
+                        {
+                            generateFlag = false;
+                            switch (propertyData[0])
+                            {
+                                case "int":
+                                    property = new IntKeyProperty();
+                                    break;
+                                case "float":
+                                    property = new FloatKeyProperty();
+                                    break;
+                                case "string":
+                                    property = new StringKeyProperty();
+                                    break;
+                                default: throw new System.Exception($"\"{generateData.loadFilePath}\"未定义类型\"{propertyData[0]}\"");
+                            }
+                        }
+                        if (generateFlag)
+                        {
+                            /* 普通类型 */
+                            switch (propertyData[0])
+                            {
+                                case "int":
+                                    property = new IntProperty();
+                                    break;
+                                case "float":
+                                    property = new FloatProperty();
+                                    break;
+                                case "string":
+                                    property = new StringProperty();
+                                    break;
+                                case "bool":
+                                    property = new BooleanProperty();
+                                    break;
+                                default: throw new System.Exception($"\"{generateData.loadFilePath}\"未定义类型\"{propertyData[0]}\"");
+                            }
+                        }
                     }
                 }
                 /* 二维数组模式 */
@@ -181,22 +210,19 @@ namespace Sora.Tools.CSVLoader.Editor
                     {
                         case "int":
                             property = new IntArray2DProperty();
-                            range.width = Convert.ToInt32(propertyData[2]);
                             break;
                         case "float":
                             property = new FloatArray2DProperty();
-                            range.width = Convert.ToInt32(propertyData[2]);
                             break;
                         case "string":
                             property = new StringArray2DProperty();
-                            range.width = Convert.ToInt32(propertyData[2]);
                             break;
                         case "bool":
                             property = new BooleanArray2DProperty();
-                            range.width = Convert.ToInt32(propertyData[2]);
                             break;
                         default: throw new System.Exception($"\"{generateData.loadFilePath}\"未定义类型\"{propertyData[0]}\"");
                     }
+                    range.width = Convert.ToInt32(propertyData[2]);
                 }
                 else if (generateData.scriptSetting.scriptObjectDataType == ScriptObjectDataType.ARRAY2DWITHNAME)
                 {
@@ -204,22 +230,20 @@ namespace Sora.Tools.CSVLoader.Editor
                     {
                         case "int":
                             property = new IntArray2DWithnameProperty();
-                            range.width = Convert.ToInt32(propertyData[2]) + 1;
                             break;
                         case "float":
                             property = new FloatArray2DWithnameProperty();
-                            range.width = Convert.ToInt32(propertyData[2]) + 1;
                             break;
                         case "string":
                             property = new StringArray2DWithnameProperty();
-                            range.width = Convert.ToInt32(propertyData[2]) + 1;
                             break;
                         case "bool":
                             property = new BooleanArray2DWithnameProperty();
-                            range.width = Convert.ToInt32(propertyData[2]) + 1;
                             break;
                         default: throw new System.Exception($"\"{generateData.loadFilePath}\"未定义类型\"{propertyData[0]}\"");
                     }
+                    /* +1为名称占用宽度 */
+                    range.width = Convert.ToInt32(propertyData[2]) + 1;
                 }
                 else throw new System.Exception($"未定义的类型\"{generateData.scriptSetting.scriptObjectDataType}\"");
                 property.InitProperty(propertyData, scriptRawData.GetRangeRawData(range));
@@ -232,6 +256,29 @@ namespace Sora.Tools.CSVLoader.Editor
                 }
                 recordPropertyMap.Add(property.propertyName, property);
                 dataSourceColumnIndex += range.width;
+            }
+
+            /* 如果当前为字典类型判断是否具有key */
+            if (generateData.scriptSetting.scriptObjectDataType == ScriptObjectDataType.DICTIONARY)
+            {
+                var keyCount = 0;
+                foreach (var property in recordPropertyMap.Values)
+                {
+                    if (!(property is IDictionaryKey)) continue;
+                    var key = property as IDictionaryKey;
+                    if (key.keyFlag)
+                    {
+                        keyCount++;
+                    }
+                }
+                if (keyCount <= 0)
+                {
+                    throw new System.Exception($"\"{generateData.csvFileInfo.Name}\"为字典类型,但未选择key");
+                }
+                else if (keyCount > 1)
+                {
+                    throw new System.Exception($"\"{generateData.csvFileInfo.Name}\"定义了多个属性作为key");
+                }
             }
             if (!errorFalg) GenerateScriptContent();
         }

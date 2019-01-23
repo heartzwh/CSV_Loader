@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace Sora.Tools.CSVLoader.Editor
 {
-    [CustomPropertyDrawer(typeof(IProperty), true)]
     public abstract class BasePropertyDrawer : PropertyDrawer
     {
         #region constructor
@@ -19,6 +18,8 @@ namespace Sora.Tools.CSVLoader.Editor
 
 
         #region property
+        protected const float FieldMaxiWidth = 80;
+        protected const float FieldMiniWidth = 26f;
         protected SerializedProperty propertyValue { get; private set; }
         protected SerializedProperty property { get; private set; }
         #endregion

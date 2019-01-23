@@ -5,7 +5,7 @@ using System;
 namespace Sora.Tools.CSVLoader
 {
     [Serializable]
-    public class IntProperty : BaseProperty<int>
+    public class IntKeyProperty : BaseProperty<int>
     {
         #region constructor
 

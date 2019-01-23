@@ -12,7 +12,6 @@ namespace Sora.Tools.CSVLoader.Editor
         {
             indexProperty.boolValue = EditorGUI.Toggle(indexRect, indexProperty.boolValue);
         }
-        protected override bool DisplayScrollView() => ItemWidth() * width > EditorGUIUtility.currentViewWidth;
         protected override float ItemWidth() => 26f;
     }
 }

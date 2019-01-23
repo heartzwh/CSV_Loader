@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using UnityEditor;
 
 namespace Sora.Tools.CSVLoader.Editor
 {
@@ -78,7 +79,6 @@ namespace Sora.Tools.CSVLoader.Editor
 
 
         #region static
-        private const string PROPERTY_NAME_DATASET = "dataSet";
         #endregion
     }
 }

@@ -88,19 +88,23 @@ namespace Sora.Tools.CSVLoader.Editor
     public enum ScriptObjectDataType
     {
         /// <summary>
-        /// ScriptObject显示数据方式,使用默认方式(list)
+        /// 使用默认方式(list)
         /// </summary>
         BASE,
         /// <summary>
-        /// ScriptObject显示数据方式,使用2D数组显示
+        /// 使用2D数组
         /// </summary>
         ARRAY2D,
         /// <summary>
-        /// ScriptObject显示数据方式,使用2D数组显示并且带有名称,样式类似
+        /// 使用2D数组并且带有名称(player, target为名称)
         ///       , player  ,   target
         /// player, APlayer ,   ATarget
         /// target, BPlayer ,   BTarget
         /// </summary>
-        ARRAY2DWITHNAME
+        ARRAY2DWITHNAME,
+        /// <summary>
+        /// 字典
+        /// </summary>
+        DICTIONARY,
     }
 }

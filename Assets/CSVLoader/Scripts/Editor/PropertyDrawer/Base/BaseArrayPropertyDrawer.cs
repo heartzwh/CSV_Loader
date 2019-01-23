@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace Sora.Tools.CSVLoader.Editor
 {
-    [CustomPropertyDrawer(typeof(IProperty), true)]
     public abstract class BaseArrayPropertyDrawer : BasePropertyDrawer
     {
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)

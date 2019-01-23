@@ -8,7 +8,7 @@ namespace Sora.Tools.CSVLoader
     /// <summary>
     /// csv属性基类
     /// </summary>
-    public abstract class BaseProperty<TValue> : IProperty
+    public abstract class BaseProperty<TValue> : IProperty<TValue>
     {
         #region constructor
 
@@ -36,8 +36,8 @@ namespace Sora.Tools.CSVLoader
         /// <value></value>
         public TValue Value { get { return propertyValue; } }
         /// <summary>
-        /// 属性值.不要调用
-        /// 只能在CSV文件中修改
+        /// 属性值.
+        /// Editor中调用
         /// </summary>
         public TValue propertyValue;
         public string[] propertySetting { get; private set; }

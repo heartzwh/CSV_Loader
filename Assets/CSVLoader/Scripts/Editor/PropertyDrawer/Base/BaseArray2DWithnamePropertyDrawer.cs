@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace Sora.Tools.CSVLoader.Editor
 {
-    [CustomPropertyDrawer(typeof(IProperty), true)]
     public abstract class BaseArray2DWithnamePropertyDrawer : BaseArray2DPropertyDrawer
     {
         protected float namelabelWidth;
@@ -18,18 +17,20 @@ namespace Sora.Tools.CSVLoader.Editor
 
         protected override void DrawProperty(Rect position, SerializedProperty property, SerializedProperty propertyValue)
         {
-            namelabelWidth = EditorGUIUtility.currentViewWidth * .2f;
+            namelabelWidth = EditorGUIUtility.currentViewWidth * .1f;
             var itemWidth = ItemWidth();
             if (namelabelWidth > itemWidth)
             {
                 itemWidth = namelabelWidth;
             }
             else namelabelWidth = itemWidth;
+            namelabelWidth = Mathf.Clamp(namelabelWidth, 0, FieldMaxiWidth);
+            itemWidth = Mathf.Clamp(itemWidth, 0, FieldMaxiWidth);
             width = property.FindPropertyRelative("width").intValue;
             height = property.FindPropertyRelative("height").intValue;
             rowNames = property.FindPropertyRelative("rowNames");
             columnNames = property.FindPropertyRelative("columnNames");
-            var scrollViewFlag = DisplayScrollView();
+            var scrollViewFlag = DisplayScrollView(itemWidth);
             if (scrollViewFlag)
             {
                 var viewRect = new Rect(position.x, position.y, itemWidth * width, height * EditorGUIUtility.singleLineHeight + scrollbarHeight);
@@ -41,7 +42,7 @@ namespace Sora.Tools.CSVLoader.Editor
                 {
                     if (y.Equals(0))
                     {
-                        var indexRect = new Rect(position.x + (x) * namelabelWidth, position.y, itemWidth, EditorGUIUtility.singleLineHeight);
+                        var indexRect = new Rect(position.x + (x) * itemWidth, position.y, itemWidth, EditorGUIUtility.singleLineHeight);
                         var indexProperty = rowNames.GetArrayElementAtIndex(x);
                         EditorGUI.LabelField(indexRect, indexProperty.stringValue);
                     }
@@ -63,6 +64,13 @@ namespace Sora.Tools.CSVLoader.Editor
             {
                 GUI.EndScrollView();
             }
+        }
+        protected override bool DisplayScrollView(float itemWidth) => (itemWidth * (width + 1)) >= EditorGUIUtility.currentViewWidth;
+
+        protected override float ItemWidth()
+        {
+            var itemWidth = (EditorGUIUtility.currentViewWidth - 20f) / (width + 1);
+            return itemWidth < FieldMiniWidth ? FieldMiniWidth : itemWidth;
         }
     }
 }

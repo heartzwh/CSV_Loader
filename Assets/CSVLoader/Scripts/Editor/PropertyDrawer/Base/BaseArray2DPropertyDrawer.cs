@@ -5,7 +5,6 @@ using UnityEngine;
 
 namespace Sora.Tools.CSVLoader.Editor
 {
-    [CustomPropertyDrawer(typeof(IProperty), true)]
     public abstract class BaseArray2DPropertyDrawer : BasePropertyDrawer
     {
         protected const float scrollbarHeight = 50f;
@@ -22,7 +21,7 @@ namespace Sora.Tools.CSVLoader.Editor
             var itemWidth = ItemWidth();
             width = property.FindPropertyRelative("width").intValue;
             height = property.FindPropertyRelative("height").intValue;
-            var scrollViewFlag = DisplayScrollView();
+            var scrollViewFlag = DisplayScrollView(itemWidth);
             if (scrollViewFlag)
             {
                 var viewRect = new Rect(position.x, position.y, itemWidth * width, height * EditorGUIUtility.singleLineHeight + scrollbarHeight);
@@ -43,8 +42,12 @@ namespace Sora.Tools.CSVLoader.Editor
             }
         }
 
-        protected abstract bool DisplayScrollView();
-        protected abstract float ItemWidth();
+        protected virtual bool DisplayScrollView(float itemWidth) => itemWidth * width >= EditorGUIUtility.currentViewWidth;
+        protected virtual float ItemWidth()
+        {
+            var itemWidth = (EditorGUIUtility.currentViewWidth - 20f) / width;
+            return itemWidth < FieldMiniWidth ? FieldMiniWidth : itemWidth;
+        }
         protected abstract void DrawPropertyArray2D(Rect position, SerializedProperty property, SerializedProperty propertyValue, Rect indexRect, SerializedProperty indexProperty);
     }
 }
