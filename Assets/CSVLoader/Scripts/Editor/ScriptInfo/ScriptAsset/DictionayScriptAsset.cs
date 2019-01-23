@@ -26,6 +26,7 @@ namespace Sora.Tools.CSVLoader.Editor
         {
             var assembly = CSVLoaderWindow.window.assembly;
             var dataSource = new List<object>();
+            var keySource = new List<object>();
             /* 从 recordProperty 中获取数据索引 */
             var getPropertyValueIndex = 0;
             /* dataIndex从1开始,是因为[0]数据为属性的设置等等信息,[1]开始才是属性的数据信息 */
@@ -83,12 +84,14 @@ namespace Sora.Tools.CSVLoader.Editor
             var scriptContent = new System.Text.StringBuilder();
             /* 此处定义为属性为Filed */
             scriptContent.AppendLine($"{GetTab(tabCount)}public System.Collections.Generic.Dictionary<{keyType}, {valueType}> {PROPERTY_NAME_DATASET};");
+            scriptContent.AppendLine($"{GetTab(tabCount)}public System.Collections.Generic.List<{valueType}> {PROPERTY_NAME_DATASET}Editor;");
             scriptContent.AppendLine();
             /* 定义添加数据函数 */
             scriptContent.AppendLine($"{GetTab(tabCount)}public void {METHOD_NAME_SETDATA}(System.Collections.Generic.List<object> dataSetSource)");
             scriptContent.AppendLine(GetTab(tabCount) + "{");
             tabCount++;
             scriptContent.AppendLine($"{GetTab(tabCount)}{PROPERTY_NAME_DATASET} = new System.Collections.Generic.Dictionary<{keyType}, {valueType}>();");
+            scriptContent.AppendLine($"{GetTab(tabCount)}{PROPERTY_NAME_DATASET}Editor = new System.Collections.Generic.List<{valueType}>();");
             scriptContent.AppendLine($"{GetTab(tabCount)}foreach (var data in dataSetSource)");
             scriptContent.AppendLine(GetTab(tabCount) + "{");
             tabCount++;
@@ -96,14 +99,23 @@ namespace Sora.Tools.CSVLoader.Editor
             scriptContent.AppendLine($"{GetTab(tabCount)}foreach (var field in fields)");
             scriptContent.AppendLine(GetTab(tabCount) + "{");
             tabCount++;
-            scriptContent.AppendLine($"{GetTab(tabCount)}if (field.FieldType is Sora.Tools.CSVLoader.IDictionaryKey)");
+            scriptContent.AppendLine($"{GetTab(tabCount)}var find = false;");
+            scriptContent.AppendLine($"{GetTab(tabCount)}foreach (var _interface in field.FieldType.GetInterfaces())");
             scriptContent.AppendLine(GetTab(tabCount) + "{");
             tabCount++;
-            scriptContent.AppendLine($"{GetTab(tabCount)}var fieldValue = (field as Sora.Tools.CSVLoader.IProperty<{keyType}>).Value;");
-            scriptContent.AppendLine($"{GetTab(tabCount)}dataSet.Add(fieldValue, data as {valueType});");
+            scriptContent.AppendLine($"{GetTab(tabCount)}if (_interface.FullName.Equals(\"{typeof(IDictionaryKey).FullName}\"))");
+            scriptContent.AppendLine(GetTab(tabCount) + "{");
+            tabCount++;
+            scriptContent.AppendLine($"{GetTab(tabCount)}var fieldValue = (field.GetValue(data) as {typeof(IProperty)}<{keyType}>).Value;");
+            scriptContent.AppendLine($"{GetTab(tabCount)}{PROPERTY_NAME_DATASET}.Add(fieldValue, data as {valueType});");
+            scriptContent.AppendLine($"{GetTab(tabCount)}{PROPERTY_NAME_DATASET}Editor.Add(data as {valueType});");
+            scriptContent.AppendLine($"{GetTab(tabCount)}find = true;");
             scriptContent.AppendLine($"{GetTab(tabCount)}break;");
             tabCount--;
             scriptContent.AppendLine(GetTab(tabCount) + "}");
+            tabCount--;
+            scriptContent.AppendLine(GetTab(tabCount) + "}");
+            scriptContent.AppendLine($"{GetTab(tabCount)}if (find) break;");
             tabCount--;
             scriptContent.AppendLine(GetTab(tabCount) + "}");
             tabCount--;
@@ -117,17 +129,25 @@ namespace Sora.Tools.CSVLoader.Editor
             public void SetData(System.Collections.Generic.List<object> dataSetSource)
             {
                 dataSet = new System.Collections.Generic.Dictionary<KEYTYPE, VALUETYPE>();
+                dataSetEditor = new System.Collections.Generic.List<VALUETYPE>();
                 foreach (var data in dataSetSource)
                 {
                     var fields = data.GetType().GetFields();
                     foreach (var field in fields)
                     {
-                        if (field.FieldType is Sora.Tools.CSVLoader.IDictionaryKey)
+                        var find = false;
+                        foreach (var _interface in field.FieldType.GetInterfaces())
                         {
-                            var fieldValue = (field as Sora.Tools.CSVLoader.IProperty<KEYTYPE>).Value;
-                            dataSet.Add(fieldValue, data as VALUETYPE);
-                            break;
+                            if (_interface.FullName.Equals(typeof(IDictionaryKey).FullName))
+                            {
+                                var fieldValue = (field.GetValue(data) as IProperty<KEYTYPE>).Value;
+                                dataSet.Add(fieldValue, data as VALUETYPE);
+                                dataSetEditor.Add(data as VALUETYPE);
+                                find = true;
+                                break;
+                            }
                         }
+                        if (find) break;
                     }
                 }
             }
@@ -145,26 +165,4 @@ namespace Sora.Tools.CSVLoader.Editor
 
         #endregion
     }
-    // public class Test
-    // {
-    //     public System.Collections.Generic.Dictionary<KEYTYPE, VALUETYPE> dataSet;
-
-    //     public void SetData(System.Collections.Generic.List<object> dataSetSource)
-    //     {
-    //         dataSet = new System.Collections.Generic.Dictionary<KEYTYPE, VALUETYPE>();
-    //         foreach (var data in dataSetSource)
-    //         {
-    //             var fields = data.GetType().GetFields();
-    //             foreach (var field in fields)
-    //             {
-    //                 if (field.FieldType is Sora.Tools.CSVLoader.IDictionaryKey)
-    //                 {
-    //                     var fieldValue = (field as Sora.Tools.CSVLoader.IProperty<KEYTYPE>).Value;
-    //                     dataSet.Add(fieldValue, data);
-    //                     break;
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
 }
