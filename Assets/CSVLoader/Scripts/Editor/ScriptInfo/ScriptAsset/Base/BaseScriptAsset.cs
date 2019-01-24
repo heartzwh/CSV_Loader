@@ -72,6 +72,7 @@ namespace Sora.Tools.CSVLoader.Editor
 
 
         #region static
+        protected const string PROPERTY_NAME_KEYSET = "keySet";
         protected const string PROPERTY_NAME_DATASET = "dataSet";
         protected const string METHOD_NAME_SETDATA = "SetData";
 

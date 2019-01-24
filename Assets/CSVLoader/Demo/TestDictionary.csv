@@ -1,6 +1,6 @@
-数据支持[string][int][float][bool]
-string#name: string: 数据类型;name: 数据名称(使用#分隔)
-@start,Sora.Tools.CSVLoader.TestDictionary,dictionary
+数据支持[string][int][float]
+string#name#key: string: 数据类型;name: 数据名称;key: 作为key的属性(使用#分隔)
+@start,Sora.Tools.CSVLoader.TestDictionary,base
 ,string#name#key,,int#count,float#radius,bool#target
 ,name1,,10,100.5,true
 ,name2,,20,10.11,false

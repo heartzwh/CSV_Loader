@@ -5,7 +5,7 @@ using System;
 namespace Sora.Tools.CSVLoader
 {
     [Serializable]
-    public class FloatKeyProperty : BaseProperty<float>
+    public class FloatKeyProperty : BaseKeyProperty<float>
     {
         #region constructor
 

@@ -26,8 +26,8 @@ namespace Sora.Tools.CSVLoader.Editor
             else namelabelWidth = itemWidth;
             namelabelWidth = Mathf.Clamp(namelabelWidth, 0, FieldMaxiWidth);
             itemWidth = Mathf.Clamp(itemWidth, 0, FieldMaxiWidth);
-            width = property.FindPropertyRelative("width").intValue;
-            height = property.FindPropertyRelative("height").intValue;
+            width = property.FindPropertyRelative("width").intValue - 1;
+            height = property.FindPropertyRelative("height").intValue - 1;
             rowNames = property.FindPropertyRelative("rowNames");
             columnNames = property.FindPropertyRelative("columnNames");
             var scrollViewFlag = DisplayScrollView(itemWidth);
@@ -36,28 +36,26 @@ namespace Sora.Tools.CSVLoader.Editor
                 var viewRect = new Rect(position.x, position.y, itemWidth * width, height * EditorGUIUtility.singleLineHeight + scrollbarHeight);
                 scrollPosition = GUI.BeginScrollView(position, scrollPosition, viewRect, true, false);
             }
+
             for (var y = 0; y < height; y++)
             {
                 for (var x = 0; x < width; x++)
                 {
+                    if (x.Equals(0))
+                    {
+                        var columnNameLabelRect = new Rect(position.x, position.y + (y + 1) * EditorGUIUtility.singleLineHeight, itemWidth, EditorGUIUtility.singleLineHeight);
+                        var columnNameProperty = columnNames.GetArrayElementAtIndex(y);
+                        EditorGUI.LabelField(columnNameLabelRect, columnNameProperty.stringValue);
+                    }
                     if (y.Equals(0))
                     {
-                        var indexRect = new Rect(position.x + (x) * itemWidth, position.y, itemWidth, EditorGUIUtility.singleLineHeight);
-                        var indexProperty = rowNames.GetArrayElementAtIndex(x);
-                        EditorGUI.LabelField(indexRect, indexProperty.stringValue);
+                        var rowNameLabelRect = new Rect(position.x + (x + 1) * itemWidth, position.y, itemWidth, EditorGUIUtility.singleLineHeight);
+                        var rowNameLabelProperty = rowNames.GetArrayElementAtIndex(x);
+                        EditorGUI.LabelField(rowNameLabelRect, rowNameLabelProperty.stringValue);
                     }
-                    else if (x.Equals(0))
-                    {
-                        var indexRect = new Rect(position.x, position.y + (y) * EditorGUIUtility.singleLineHeight, itemWidth, EditorGUIUtility.singleLineHeight);
-                        var indexProperty = columnNames.GetArrayElementAtIndex(y);
-                        EditorGUI.LabelField(indexRect, indexProperty.stringValue);
-                    }
-                    else
-                    {
-                        var indexRect = new Rect(position.x + x * itemWidth, position.y + y * EditorGUIUtility.singleLineHeight, itemWidth, EditorGUIUtility.singleLineHeight);
-                        var indexProperty = propertyValue.GetArrayElementAtIndex(x + width * y);
-                        DrawPropertyArray2D(position, property, propertyValue, indexRect, indexProperty);
-                    }
+                    var indexRect = new Rect(position.x + (x + 1) * itemWidth, position.y + (y + 1) * EditorGUIUtility.singleLineHeight, itemWidth, EditorGUIUtility.singleLineHeight);
+                    var indexProperty = propertyValue.GetArrayElementAtIndex(x + width * y);
+                    DrawPropertyArray2D(position, property, propertyValue, indexRect, indexProperty);
                 }
             }
             if (scrollViewFlag)

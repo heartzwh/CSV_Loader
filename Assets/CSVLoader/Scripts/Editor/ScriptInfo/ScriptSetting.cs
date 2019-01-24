@@ -102,9 +102,5 @@ namespace Sora.Tools.CSVLoader.Editor
         /// target, BPlayer ,   BTarget
         /// </summary>
         ARRAY2DWITHNAME,
-        /// <summary>
-        /// 字典
-        /// </summary>
-        DICTIONARY,
     }
 }

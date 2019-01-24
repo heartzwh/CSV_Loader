@@ -129,14 +129,12 @@ namespace Sora.Tools.CSVLoader.Editor
             switch (generateData.scriptSetting.scriptObjectDataType)
             {
                 case ScriptObjectDataType.BASE:
+                    // scriptAsset = new DictionayScriptAsset();
                     scriptAsset = new DefaultScriptAsset();
                     break;
                 case ScriptObjectDataType.ARRAY2D:
                 case ScriptObjectDataType.ARRAY2DWITHNAME:
                     scriptAsset = new Array2DScriptAsset();
-                    break;
-                case ScriptObjectDataType.DICTIONARY:
-                    scriptAsset = new DictionayScriptAsset();
                     break;
                 default: throw new System.Exception($"未定义的类型{generateData.scriptSetting.scriptObjectDataType}");
             }

@@ -16,11 +16,11 @@ namespace Sora.Tools.CSVLoader
 
         #region property
         /// <summary>
-        /// 只能在editor中使用
+        /// 数据宽度
         /// </summary>
         public int width;
         /// <summary>
-        /// 只能在editor中使用
+        /// 数据高度
         /// </summary>
         public int height;
         #endregion

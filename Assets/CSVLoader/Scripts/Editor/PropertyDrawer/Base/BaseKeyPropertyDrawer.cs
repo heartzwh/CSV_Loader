@@ -1,11 +1,11 @@
 //Author: sora
 
-using System;
+using UnityEditor;
+using UnityEngine;
 
-namespace Sora.Tools.CSVLoader
+namespace Sora.Tools.CSVLoader.Editor
 {
-    [Serializable]
-    public class IntKeyProperty : BaseKeyProperty<int>
+    public abstract class BaseKeyPropertyDrawer : BasePropertyDrawer
     {
         #region constructor
 
@@ -18,16 +18,11 @@ namespace Sora.Tools.CSVLoader
 
 
         #region property
-
+        
         #endregion
 
 
         #region public method
-        public override void SetPropertyValue(RawData value)
-        {
-            var valueStr = value[0, 0];
-            propertyValue = string.IsNullOrEmpty(valueStr) ? 0 : Convert.ToInt32(valueStr);
-        }
 
         #endregion
 

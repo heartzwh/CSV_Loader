@@ -26,13 +26,13 @@ namespace Sora.Tools.CSVLoader
         public override void SetPropertyValue(RawData value)
         {
             base.SetPropertyValue(value);
-            propertyValue = new float[width * height];
+            propertyValue = new float[(width - 1) * (height - 1)];
             for (var y = 1; y < height; y++)
             {
                 for (var x = 1; x < width; x++)
                 {
                     var valueStr = value[x, y];
-                    propertyValue[x + width * y] = string.IsNullOrEmpty(valueStr) ? 0f : Convert.ToSingle(valueStr);
+                    propertyValue[(x - 1) + (width - 1) * (y - 1)] = string.IsNullOrEmpty(valueStr) ? 0f : Convert.ToSingle(valueStr);
                 }
             }
         }

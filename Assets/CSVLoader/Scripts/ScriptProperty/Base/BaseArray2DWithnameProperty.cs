@@ -32,15 +32,15 @@ namespace Sora.Tools.CSVLoader
         public override void SetPropertyValue(RawData value)
         {
             base.SetPropertyValue(value);
-            rowNames = new string[width];
-            columnNames = new string[height];
+            rowNames = new string[width - 1];
+            columnNames = new string[height - 1];
             for (var x = 1; x < width; x++)
             {
-                rowNames[x] = value[x, 0];
+                rowNames[x - 1] = value[x, 0];
             }
             for (var y = 1; y < height; y++)
             {
-                columnNames[y] = value[0, y];
+                columnNames[y - 1] = value[0, y];
             }
         }
 

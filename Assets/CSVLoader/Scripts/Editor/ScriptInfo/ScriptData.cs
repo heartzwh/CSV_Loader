@@ -131,12 +131,10 @@ namespace Sora.Tools.CSVLoader.Editor
                 var property = default(IProperty);
                 var range = new RawRange(1, dataSourceColumnIndex, 1, scriptRawData.height - 1);
                 /* 基础模式 */
-                if (generateData.scriptSetting.scriptObjectDataType == ScriptObjectDataType.BASE ||
-                /* 字典模式 */
-                    generateData.scriptSetting.scriptObjectDataType == ScriptObjectDataType.DICTIONARY)
+                if (generateData.scriptSetting.scriptObjectDataType == ScriptObjectDataType.BASE)
                 {
-                    /* 解析为数组 */
-                    if (propertyData.Length >= 3 && int.TryParse(propertyData[2], out var width))
+                    /* 数组模式 */
+                    if (propertyData.Length == 3 && int.TryParse(propertyData[2], out var width))
                     {
                         switch (propertyData[0])
                         {
@@ -158,48 +156,41 @@ namespace Sora.Tools.CSVLoader.Editor
                         /* 为了适应数据宽度超过属性栏宽度 */
                         columnIndex += range.width - 1;
                     }
+                    /* 字典模式 */
+                    else if (propertyData.Length == 3 && propertyData[2].ToLower().StartsWith("key"))
+                    {
+                        switch (propertyData[0])
+                        {
+                            case "int":
+                                property = new IntKeyProperty();
+                                break;
+                            case "float":
+                                property = new FloatKeyProperty();
+                                break;
+                            case "string":
+                                property = new StringKeyProperty();
+                                break;
+                            default: throw new System.Exception($"\"{generateData.loadFilePath}\"未定义类型\"{propertyData[0]}\"");
+                        }
+                    }
+                    /* 普通模式 */
                     else
                     {
-                        var generateFlag = true;
-                        /* 字典模式并且属性为key */
-                        if (generateData.scriptSetting.scriptObjectDataType == ScriptObjectDataType.DICTIONARY &&
-                            propertyData.Length >= 3 &&
-                            propertyRawData.ToLower().EndsWith("key"))
+                        switch (propertyData[0])
                         {
-                            generateFlag = false;
-                            switch (propertyData[0])
-                            {
-                                case "int":
-                                    property = new IntKeyProperty();
-                                    break;
-                                case "float":
-                                    property = new FloatKeyProperty();
-                                    break;
-                                case "string":
-                                    property = new StringKeyProperty();
-                                    break;
-                                default: throw new System.Exception($"\"{generateData.loadFilePath}\"未定义类型\"{propertyData[0]}\"");
-                            }
-                        }
-                        if (generateFlag)
-                        {
-                            /* 普通类型 */
-                            switch (propertyData[0])
-                            {
-                                case "int":
-                                    property = new IntProperty();
-                                    break;
-                                case "float":
-                                    property = new FloatProperty();
-                                    break;
-                                case "string":
-                                    property = new StringProperty();
-                                    break;
-                                case "bool":
-                                    property = new BooleanProperty();
-                                    break;
-                                default: throw new System.Exception($"\"{generateData.loadFilePath}\"未定义类型\"{propertyData[0]}\"");
-                            }
+                            case "int":
+                                property = new IntProperty();
+                                break;
+                            case "float":
+                                property = new FloatProperty();
+                                break;
+                            case "string":
+                                property = new StringProperty();
+                                break;
+                            case "bool":
+                                property = new BooleanProperty();
+                                break;
+                            default: throw new System.Exception($"\"{generateData.loadFilePath}\"未定义类型\"{propertyData[0]}\"");
                         }
                     }
                 }
@@ -258,8 +249,18 @@ namespace Sora.Tools.CSVLoader.Editor
                 dataSourceColumnIndex += range.width;
             }
 
-            /* 如果当前为字典类型判断是否具有key */
-            if (generateData.scriptSetting.scriptObjectDataType == ScriptObjectDataType.DICTIONARY)
+            /* true: 字典模式 */
+
+            var dictionaryFlag = false;
+            foreach (var property in recordPropertyMap.Values)
+            {
+                if (property is IDictionaryKey)
+                {
+                    dictionaryFlag = true;
+                    break;
+                }
+            }
+            if (dictionaryFlag)
             {
                 var keyCount = 0;
                 foreach (var property in recordPropertyMap.Values)

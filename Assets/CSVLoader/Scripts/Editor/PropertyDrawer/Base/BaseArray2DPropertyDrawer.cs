@@ -7,7 +7,7 @@ namespace Sora.Tools.CSVLoader.Editor
 {
     public abstract class BaseArray2DPropertyDrawer : BasePropertyDrawer
     {
-        protected const float scrollbarHeight = 50f;
+        protected const float scrollbarHeight = 30f;
         protected Vector2 scrollPosition;
         protected int width;
         protected int height;

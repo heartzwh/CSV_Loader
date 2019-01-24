@@ -72,33 +72,158 @@ namespace Sora.Tools.CSVLoader.Editor
         #region protected method
         protected override string GetScriptContent(int tabCount)
         {
+            var keyType = "";
+            var valueType = generateData.scriptSetting.scriptName;
+            /* true: 字典模式 */
+            var dictionaryFlag = false;
+            foreach (var property in generateData.scriptData.recordPropertyMap.Values)
+            {
+                if (property is IDictionaryKey)
+                {
+                    dictionaryFlag = true;
+                    keyType = property.propertyValueType.FullName;
+                    break;
+                }
+            }
+            if (dictionaryFlag && string.IsNullOrEmpty(keyType)) throw new System.Exception($"\"{generateData.csvFileInfo.Name}\"key为空???");
+
             var scriptContent = new System.Text.StringBuilder();
             /* 此处定义为属性为Filed */
-            scriptContent.AppendLine($"{GetTab(tabCount)}public System.Collections.Generic.List<{generateData.scriptSetting.scriptName}> {PROPERTY_NAME_DATASET};");
+            if (dictionaryFlag)
+            {
+                scriptContent.AppendLine($"{GetTab(tabCount)}public System.Collections.Generic.List<{keyType}> {PROPERTY_NAME_KEYSET};");
+            }
+
+            scriptContent.AppendLine($"{GetTab(tabCount)}public System.Collections.Generic.List<{valueType}> {PROPERTY_NAME_DATASET};");
+
             scriptContent.AppendLine();
             /* 定义添加数据函数 */
             scriptContent.AppendLine($"{GetTab(tabCount)}public void {METHOD_NAME_SETDATA}(System.Collections.Generic.List<object> dataSetSource)");
             scriptContent.AppendLine(GetTab(tabCount) + "{");
             tabCount++;
-            scriptContent.AppendLine($"{GetTab(tabCount)}{PROPERTY_NAME_DATASET} = new System.Collections.Generic.List<{generateData.scriptSetting.scriptName}>();");
+            scriptContent.AppendLine($"{GetTab(tabCount)}{PROPERTY_NAME_DATASET} = new System.Collections.Generic.List<{valueType}>();");
+            if (dictionaryFlag)
+            {
+                scriptContent.AppendLine($"{GetTab(tabCount)}{PROPERTY_NAME_KEYSET} = new System.Collections.Generic.List<{keyType}>();");
+            }
             scriptContent.AppendLine($"{GetTab(tabCount)}foreach (var data in dataSetSource)");
             scriptContent.AppendLine(GetTab(tabCount) + "{");
             tabCount++;
-            scriptContent.AppendLine($"{GetTab(tabCount)}{PROPERTY_NAME_DATASET}.Add(data as {generateData.scriptSetting.scriptName});");
+            scriptContent.AppendLine($"{GetTab(tabCount)}{PROPERTY_NAME_DATASET}.Add(data as {valueType});");
+            if (dictionaryFlag)
+            {
+                scriptContent.AppendLine($"{GetTab(tabCount)}var fields = data.GetType().GetFields();");
+                scriptContent.AppendLine($"{GetTab(tabCount)}foreach (var field in fields)");
+                scriptContent.AppendLine(GetTab(tabCount) + "{");
+                tabCount++;
+                scriptContent.AppendLine($"{GetTab(tabCount)}if (field.GetValue(data) is {typeof(IDictionaryKey).FullName})");
+                scriptContent.AppendLine(GetTab(tabCount) + "{");
+                tabCount++;
+                scriptContent.AppendLine($"{GetTab(tabCount)}{PROPERTY_NAME_KEYSET}.Add((field.GetValue(data) as {typeof(IProperty).FullName}<{keyType}>).Value);");
+                scriptContent.AppendLine($"{GetTab(tabCount)}break;");
+                tabCount--;
+                scriptContent.AppendLine(GetTab(tabCount) + "}");
+                tabCount--;
+                scriptContent.AppendLine(GetTab(tabCount) + "}");
+            }
             tabCount--;
             scriptContent.AppendLine(GetTab(tabCount) + "}");
             tabCount--;
             scriptContent.AppendLine(GetTab(tabCount) + "}");
+            if (dictionaryFlag)
+            {
+                scriptContent.AppendLine();
+                /* GetDataByKey */
+                scriptContent.AppendLine($"{GetTab(tabCount)}public {valueType} GetDataByKey({keyType} key)");
+                scriptContent.AppendLine(GetTab(tabCount) + "{");
+                tabCount++;
+                scriptContent.AppendLine($"{GetTab(tabCount)}var result = default({valueType});");
+                scriptContent.AppendLine($"{GetTab(tabCount)}for (var index = 0; index < {PROPERTY_NAME_KEYSET}.Count; index++)");
+                scriptContent.AppendLine(GetTab(tabCount) + "{");
+                tabCount++;
+                scriptContent.AppendLine($"{GetTab(tabCount)}if ({PROPERTY_NAME_KEYSET}[index].Equals(key))");
+                scriptContent.AppendLine(GetTab(tabCount) + "{");
+                tabCount++;
+                scriptContent.AppendLine($"{GetTab(tabCount)}result = {PROPERTY_NAME_DATASET}[index];");
+                scriptContent.AppendLine($"{GetTab(tabCount)}break;");
+                tabCount--;
+                scriptContent.AppendLine(GetTab(tabCount) + "}");
+                tabCount--;
+                scriptContent.AppendLine(GetTab(tabCount) + "}");
+                scriptContent.AppendLine($"{GetTab(tabCount)}return result;");
+                tabCount--;
+                scriptContent.AppendLine(GetTab(tabCount) + "}");
+                scriptContent.AppendLine();
+                /* ContainKey */
+                scriptContent.AppendLine($"{GetTab(tabCount)}public bool ContainKey({keyType} key)");
+                scriptContent.AppendLine(GetTab(tabCount) + "{");
+                tabCount++;
+                scriptContent.AppendLine($"{GetTab(tabCount)}var result = false;");
+                scriptContent.AppendLine($"{GetTab(tabCount)}for (var index = 0; index < {PROPERTY_NAME_KEYSET}.Count; index++)");
+                scriptContent.AppendLine(GetTab(tabCount) + "{");
+                tabCount++;
+                scriptContent.AppendLine($"{GetTab(tabCount)}if ({PROPERTY_NAME_KEYSET}[index].Equals(key))");
+                scriptContent.AppendLine(GetTab(tabCount) + "{");
+                tabCount++;
+                scriptContent.AppendLine($"{GetTab(tabCount)}result = true;");
+                scriptContent.AppendLine($"{GetTab(tabCount)}break;");
+                tabCount--;
+                scriptContent.AppendLine(GetTab(tabCount) + "}");
+                tabCount--;
+                scriptContent.AppendLine(GetTab(tabCount) + "}");
+                scriptContent.AppendLine($"{GetTab(tabCount)}return result;");
+                tabCount--;
+                scriptContent.AppendLine(GetTab(tabCount) + "}");
+            }
             return scriptContent.ToString();
             /* 内容为
-            public System.Collections.Generic.List<CLASS_NAME> dataSet;
+            public System.Collections.Generic.List<string> keySet;
+            public System.Collections.Generic.List<TestDictionary> dataSet;
+
+            public TestDictionary GetDataByKey(string key)
+            {
+                var result = default(TestDictionary);
+                for (var index = 0; index < keySet.Count; index++)
+                {
+                    if (keySet[index].Equals(key))
+                    {
+                        result = dataSet[index];
+                        break;
+                    }
+                }
+                return result;
+            }
+
+            public bool ContainKey(string key)
+            {
+                var result = false;
+                for (var index = 0; index < keySet.Count; index++)
+                {
+                    if (keySet[index].Equals(key))
+                    {
+                        result = true;
+                        break;
+                    }
+                }
+                return result;
+            }
 
             public void SetData(System.Collections.Generic.List<object> dataSetSource)
             {
-                dataSet = new System.Collections.Generic.List<CLASS_NAME>();
+                keySet = new System.Collections.Generic.List<string>();
+                dataSet = new System.Collections.Generic.List<TestDictionary>();
                 foreach (var data in dataSetSource)
                 {
-                    dataSet.Add(data as CLASS_NAME);
+                    dataSet.Add(data as TestDictionary);
+                    var fields = data.GetType().GetFields();
+                    foreach (var field in fields)
+                    {
+                        if (field.GetValue(data) is Sora.Tools.CSVLoader.IDictionaryKey)
+                        {
+                            keySet.Add((field.GetValue(data) as Sora.Tools.CSVLoader.IProperty<System.String>).Value);
+                            break;
+                        }
+                    }
                 }
             }
             */
