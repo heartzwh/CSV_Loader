@@ -1,7 +1,7 @@
 数据支持[string][int][float][bool]
 string#name#3: string: 数据类型;name: 数据名称;3: 数据长度(使用#分隔)
-@start,Sora.Tools.CSVLoader.TestBaseArray,array
-,string#target#2,,,int#count#2,,float#radius#2,,bool#equip#2,
-,target1,target2,,100,200,10.5,20.5,true,true
-,target3,target4,,300,400,30.5,40.5,false,false
+@start,Sora.Tools.CSVLoader.TestBaseArray,base
+,string#target,int#count#2,,float#radius#2,,bool#equip#2,
+,target1,100,200,10.5,20.5,true,true
+,target3,300,400,30.5,40.5,false,false
 @end

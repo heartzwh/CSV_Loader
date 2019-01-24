@@ -479,9 +479,10 @@ namespace Sora.Tools.CSVLoader.Editor
             foreach (var generateData in generateDataMap)
             {
                 generateData.scriptAssetData.scriptAsset.InitData();
+                EditorUtility.SetDirty(generateData.scriptAssetData.assetObject);
             }
-            AssetDatabase.Refresh();
             AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
         }
         public static CSVLoaderWindow window;
         public static char Seperator()
