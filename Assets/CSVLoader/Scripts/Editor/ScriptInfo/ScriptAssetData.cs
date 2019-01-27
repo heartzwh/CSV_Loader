@@ -129,7 +129,6 @@ namespace Sora.Tools.CSVLoader.Editor
             switch (generateData.scriptSetting.scriptObjectDataType)
             {
                 case ScriptObjectDataType.BASE:
-                    // scriptAsset = new DictionayScriptAsset();
                     scriptAsset = new DefaultScriptAsset();
                     break;
                 case ScriptObjectDataType.ARRAY2D:

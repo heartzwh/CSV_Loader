@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
@@ -14,6 +15,11 @@ namespace Sora.Tools.CSVLoader.Editor
     /// </summary>
     public class GenerateData
     {
+        /// <summary>
+        /// 原始数据
+        /// 从@start@end
+        /// </summary>
+        public string rawGenerateData;
         /// <summary>
         /// 文件位置(csv文件位置)
         /// </summary>
@@ -84,7 +90,11 @@ namespace Sora.Tools.CSVLoader.Editor
         {
             get
             {
-                return !string.IsNullOrEmpty(m_loadFilePath);
+                if (string.IsNullOrEmpty(m_loadFilePath)) return false;
+                // var dynamicComplete = true;
+                // foreach (var dynamicData in dynamicDataMap.Values) dynamicComplete &= dynamicData.prepareComplete;
+                // Debug.Log(scriptSetting.scriptFullname + " dynamicComplete " + dynamicComplete);
+                return (generateScriptFlag || (!generateScriptFlag && scriptAssetData.assetObject != null)) /* && dynamicComplete */;
             }
         }
         /// <summary>
@@ -108,7 +118,7 @@ namespace Sora.Tools.CSVLoader.Editor
         public float blockHeight;
         public ScriptSetting scriptSetting;
         /// <summary>
-        /// 是否需要创建脚本
+        /// true: 需要创建脚本
         /// </summary>
         public bool generateScriptFlag
         {
@@ -121,12 +131,28 @@ namespace Sora.Tools.CSVLoader.Editor
             }
         }
         public bool sameFileFlag = false;
+        /// <summary>
+        /// 关联脚本
+        /// </summary>
+        /// <typeparam name="string">脚本全名</typeparam>
+        /// <typeparam name="GenerateData">脚本数据</typeparam>
+        /// <returns></returns>
+        public Dictionary<string, GenerateData> dynamicDataMap { get; private set; } = new Dictionary<string, GenerateData>();
         private string m_loadFilePath;
         private string m_resourceFilePath;
         private Dictionary<string, bool> sameScriptMap = new Dictionary<string, bool>();
+        public GenerateData() { }
         public GenerateData(int createIndex)
         {
             this.createIndex = createIndex;
+        }
+        /// <summary>
+        /// 使用原始数据初始化
+        /// </summary>
+        /// <param name="rawData">原始数据,从@start@end,所有数据</param>
+        public GenerateData(string rawData)
+        {
+            GenerateScript(rawData);
         }
         /// <summary>
         /// 设置块状态
@@ -159,10 +185,28 @@ namespace Sora.Tools.CSVLoader.Editor
             var fileStream = new FileStream(loadFilePath, FileMode.Open, FileAccess.Read);
             var streamReader = new StreamReader(fileStream);
             var line = "";
+            var rawData = new System.Text.StringBuilder();
+            while ((line = streamReader.ReadLine()) != null)
+            {
+                if (line.StartsWith(START_MARK))
+                {
+                    rawData.Clear();
+                }
+                rawData.AppendLine(line);
+                if (line.StartsWith(END_MARK)) break;
+            }
+            streamReader.Close();
+            fileStream.Close();
+            GenerateScript(rawData.ToString());
+        }
+        private void GenerateScript(string rawGenerateData)
+        {
+            this.rawGenerateData = rawGenerateData;
+            var lines = rawGenerateData.Split(new string[] { "\r\n", "\r", "\n" }, System.StringSplitOptions.None);
             var start = false;
             var rawPropertyData = new System.Text.StringBuilder();
             var rawScriptSetting = new List<string>();
-            while ((line = streamReader.ReadLine()) != null)
+            foreach (var line in lines)
             {
                 var lineData = line.Split(Helper.SPLIT);
                 if (!start)
@@ -177,17 +221,15 @@ namespace Sora.Tools.CSVLoader.Editor
                 if (lineData[0].StartsWith(END_MARK)) break;
                 rawPropertyData.AppendLine(line);
             }
-            streamReader.Close();
-            fileStream.Close();
             scriptSetting = new ScriptSetting(this, rawScriptSetting.ToArray());
             scriptData = new ScriptData(this, rawPropertyData.ToString());
             scriptAssetData = new ScriptAssetData(this);
         }
-
         /// <summary>
         /// 检查是否有相同脚本
         /// </summary>
         /// <param name="scriptFullName">脚本全名</param>
+        /// <param withNotification="true: 显示提示">脚本全名</param>
         /// <returns>true: 有相同</returns>
         public bool CheckHaveSameScript(string scriptFullName, bool withNotification)
         {

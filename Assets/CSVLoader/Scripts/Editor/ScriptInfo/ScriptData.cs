@@ -50,15 +50,6 @@ namespace Sora.Tools.CSVLoader.Editor
         public string scriptContent { get; private set; }
         public readonly GenerateData generateData;
         public readonly RawData scriptRawData;
-        /// <summary>
-        /// 可以使用属性
-        /// </summary>
-        /// <typeparam name="string"></typeparam>
-        /// <returns></returns>
-        private HashSet<string> valiblePropertySet = new HashSet<string>()
-        {
-            "int", "float", "string", "bool",
-        };
         #endregion
 
 
@@ -127,116 +118,123 @@ namespace Sora.Tools.CSVLoader.Editor
                     continue;
                 }
                 if (string.IsNullOrEmpty(propertyRawData)) continue;
-                if (!valiblePropertySet.Contains(propertyData[0])) throw new System.Exception($"未包含属性{propertyData[0]}");
                 var property = default(IProperty);
                 var range = new RawRange(1, dataSourceColumnIndex, 1, scriptRawData.height - 1);
-                /* 基础模式 */
-                if (generateData.scriptSetting.scriptObjectDataType == ScriptObjectDataType.BASE)
+                /* @开头,为自定义类型 */
+                if (propertyData[0].StartsWith("@"))
                 {
-                    /* 数组模式 */
-                    if (propertyData.Length == 3 && int.TryParse(propertyData[2], out var width))
+                    property = new DynamicProperty();
+                }
+                else
+                {
+                    /* 基础模式 */
+                    if (generateData.scriptSetting.scriptObjectDataType == ScriptObjectDataType.BASE)
+                    {
+                        /* 数组模式 */
+                        if (propertyData.Length == 3 && int.TryParse(propertyData[2], out var width))
+                        {
+                            switch (propertyData[0])
+                            {
+                                case "int":
+                                    property = new IntArrayProperty();
+                                    break;
+                                case "float":
+                                    property = new FloatArrayProperty();
+                                    break;
+                                case "string":
+                                    property = new StringArrayProperty();
+                                    break;
+                                case "bool":
+                                    property = new BooleanArrayProperty();
+                                    break;
+                                default: throw new System.Exception($"\"{generateData.loadFilePath}\"未定义类型\"{propertyData[0]}\"");
+                            }
+                            range.width = Convert.ToInt32(width);
+                            /* 为了适应数据宽度超过属性栏宽度 */
+                            columnIndex += range.width - 1;
+                        }
+                        /* 字典模式 */
+                        else if (propertyData.Length == 3 && propertyData[2].ToLower().StartsWith("key"))
+                        {
+                            switch (propertyData[0])
+                            {
+                                case "int":
+                                    property = new IntKeyProperty();
+                                    break;
+                                case "float":
+                                    property = new FloatKeyProperty();
+                                    break;
+                                case "string":
+                                    property = new StringKeyProperty();
+                                    break;
+                                default: throw new System.Exception($"\"{generateData.loadFilePath}\"未定义类型\"{propertyData[0]}\"");
+                            }
+                        }
+                        /* 普通模式 */
+                        else
+                        {
+                            switch (propertyData[0])
+                            {
+                                case "int":
+                                    property = new IntProperty();
+                                    break;
+                                case "float":
+                                    property = new FloatProperty();
+                                    break;
+                                case "string":
+                                    property = new StringProperty();
+                                    break;
+                                case "bool":
+                                    property = new BooleanProperty();
+                                    break;
+                                default: throw new System.Exception($"\"{generateData.loadFilePath}\"未定义类型\"{propertyData[0]}\"");
+                            }
+                        }
+                    }
+                    /* 二维数组模式 */
+                    else if (generateData.scriptSetting.scriptObjectDataType == ScriptObjectDataType.ARRAY2D)
                     {
                         switch (propertyData[0])
                         {
                             case "int":
-                                property = new IntArrayProperty();
+                                property = new IntArray2DProperty();
                                 break;
                             case "float":
-                                property = new FloatArrayProperty();
+                                property = new FloatArray2DProperty();
                                 break;
                             case "string":
-                                property = new StringArrayProperty();
+                                property = new StringArray2DProperty();
                                 break;
                             case "bool":
-                                property = new BooleanArrayProperty();
+                                property = new BooleanArray2DProperty();
                                 break;
                             default: throw new System.Exception($"\"{generateData.loadFilePath}\"未定义类型\"{propertyData[0]}\"");
                         }
-                        range.width = Convert.ToInt32(width);
-                        /* 为了适应数据宽度超过属性栏宽度 */
-                        columnIndex += range.width - 1;
+                        range.width = Convert.ToInt32(propertyData[2]);
                     }
-                    /* 字典模式 */
-                    else if (propertyData.Length == 3 && propertyData[2].ToLower().StartsWith("key"))
+                    else if (generateData.scriptSetting.scriptObjectDataType == ScriptObjectDataType.ARRAY2DWITHNAME)
                     {
                         switch (propertyData[0])
                         {
                             case "int":
-                                property = new IntKeyProperty();
+                                property = new IntArray2DWithnameProperty();
                                 break;
                             case "float":
-                                property = new FloatKeyProperty();
+                                property = new FloatArray2DWithnameProperty();
                                 break;
                             case "string":
-                                property = new StringKeyProperty();
-                                break;
-                            default: throw new System.Exception($"\"{generateData.loadFilePath}\"未定义类型\"{propertyData[0]}\"");
-                        }
-                    }
-                    /* 普通模式 */
-                    else
-                    {
-                        switch (propertyData[0])
-                        {
-                            case "int":
-                                property = new IntProperty();
-                                break;
-                            case "float":
-                                property = new FloatProperty();
-                                break;
-                            case "string":
-                                property = new StringProperty();
+                                property = new StringArray2DWithnameProperty();
                                 break;
                             case "bool":
-                                property = new BooleanProperty();
+                                property = new BooleanArray2DWithnameProperty();
                                 break;
                             default: throw new System.Exception($"\"{generateData.loadFilePath}\"未定义类型\"{propertyData[0]}\"");
                         }
+                        /* +1为名称占用宽度 */
+                        range.width = Convert.ToInt32(propertyData[2]) + 1;
                     }
+                    else throw new System.Exception($"未定义的类型\"{generateData.scriptSetting.scriptObjectDataType}\"");
                 }
-                /* 二维数组模式 */
-                else if (generateData.scriptSetting.scriptObjectDataType == ScriptObjectDataType.ARRAY2D)
-                {
-                    switch (propertyData[0])
-                    {
-                        case "int":
-                            property = new IntArray2DProperty();
-                            break;
-                        case "float":
-                            property = new FloatArray2DProperty();
-                            break;
-                        case "string":
-                            property = new StringArray2DProperty();
-                            break;
-                        case "bool":
-                            property = new BooleanArray2DProperty();
-                            break;
-                        default: throw new System.Exception($"\"{generateData.loadFilePath}\"未定义类型\"{propertyData[0]}\"");
-                    }
-                    range.width = Convert.ToInt32(propertyData[2]);
-                }
-                else if (generateData.scriptSetting.scriptObjectDataType == ScriptObjectDataType.ARRAY2DWITHNAME)
-                {
-                    switch (propertyData[0])
-                    {
-                        case "int":
-                            property = new IntArray2DWithnameProperty();
-                            break;
-                        case "float":
-                            property = new FloatArray2DWithnameProperty();
-                            break;
-                        case "string":
-                            property = new StringArray2DWithnameProperty();
-                            break;
-                        case "bool":
-                            property = new BooleanArray2DWithnameProperty();
-                            break;
-                        default: throw new System.Exception($"\"{generateData.loadFilePath}\"未定义类型\"{propertyData[0]}\"");
-                    }
-                    /* +1为名称占用宽度 */
-                    range.width = Convert.ToInt32(propertyData[2]) + 1;
-                }
-                else throw new System.Exception($"未定义的类型\"{generateData.scriptSetting.scriptObjectDataType}\"");
                 property.InitProperty(propertyData, scriptRawData.GetRangeRawData(range));
                 if (recordPropertyMap.ContainsKey(property.propertyName))
                 {
@@ -247,6 +245,16 @@ namespace Sora.Tools.CSVLoader.Editor
                 }
                 recordPropertyMap.Add(property.propertyName, property);
                 dataSourceColumnIndex += range.width;
+
+                if (property is DynamicProperty)
+                {
+                    // var dynamicProperty = property as DynamicProperty;
+                    // generateData.dynamicDataMap.Add(dynamicProperty.dynamicTypeFullname, new GenerateData());
+                    // generateData.dynamicDataList
+                    // var dynamicPropertyInfo = new DynamicPropertyInfo();
+                    // dynamicPropertyInfo.dynamicProperty = dynamicProperty;
+                    // dynamicPropertyInfo.hasScripts = generateData.CheckHaveSameScript(dynamicProperty.dynamicTypeFullname, false);
+                }
             }
 
             /* true: 字典模式 */
@@ -330,5 +338,18 @@ namespace Sora.Tools.CSVLoader.Editor
         #region static
 
         #endregion
+    }
+
+    public class DynamicPropertyInfo
+    {
+        public DynamicProperty dynamicProperty;
+        /// <summary>
+        /// csv 文件位置/script object位置
+        /// </summary>
+        public string path;
+        /// <summary>
+        /// true: 存在需要的脚本
+        /// </summary>
+        public bool hasScripts;
     }
 }

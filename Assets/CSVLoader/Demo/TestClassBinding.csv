@@ -1,0 +1,5 @@
+@start,Sora.Tools.CSVLoader.TestClassBinding,base
+string#bindingKey,int#count
+a1,100
+a2,10
+@end

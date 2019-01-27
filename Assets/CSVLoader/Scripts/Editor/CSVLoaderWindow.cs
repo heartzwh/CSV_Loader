@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Xml.Serialization;
+using System.Linq;
 
 namespace Sora.Tools.CSVLoader.Editor
 {
@@ -105,6 +106,7 @@ namespace Sora.Tools.CSVLoader.Editor
         private void OnGUI()
         {
             #region 输入区域
+            var createError = false;
             var splitLineWidth = 2f;
             var buttonWidth = 80f;
             var buttonHalfWidth = (buttonWidth - Margin / 2) / 2;
@@ -230,6 +232,53 @@ namespace Sora.Tools.CSVLoader.Editor
                         AddHeight(0);
                     }
                     EditorGUI.indentLevel--;
+                    /* 检查关联文件 */
+                    if (!string.IsNullOrEmpty(data.loadFilePath))
+                    {
+                        var dynamicPropertys = data.scriptData.recordPropertyMap.Values.Where(p => p is DynamicProperty).OfType<DynamicProperty>().ToList();
+                        if (dynamicPropertys.Count > 0)
+                        {
+                            var missCount = 0;
+                            var missScript = new System.Text.StringBuilder();
+                            missScript.AppendLine("缺少关联文件:");
+                            var map = generateDataMap.Values.Where(d => !string.IsNullOrEmpty(d.loadFilePath)).ToDictionary(d => d.scriptSetting.scriptFullname, d => d);
+                            foreach (var dynamicProperty in dynamicPropertys)
+                            {
+                                var dynamicFullname = dynamicProperty.dynamicTypeFullname;
+                                /* map中不存在该脚本 */
+                                if (!map.ContainsKey(dynamicFullname))
+                                {
+                                    missScript.AppendLine(dynamicFullname);
+                                    missCount++;
+                                    /* 在自身generate data中存在,则删除 */
+                                    if (data.dynamicDataMap.ContainsKey(dynamicFullname))
+                                    {
+                                        data.dynamicDataMap.Remove(dynamicFullname);
+                                    }
+                                }
+                                /* map中存在该脚本 */
+                                else
+                                {
+                                    /* 在自身generate data中不存在,则添加 */
+                                    if (!data.dynamicDataMap.ContainsKey(dynamicFullname))
+                                    {
+                                        data.dynamicDataMap.Add(dynamicFullname, map[dynamicFullname]);
+                                    }
+                                }
+                            }
+                            if (missCount > 0)
+                            {
+                                createError = true;
+                                AddSpace();
+                                /* 11: helpbox line height */
+                                var boxHeight = (missCount + 1) * 11 + 5.5f;
+                                var helpBoxRect = new Rect(inputArea.x, inputHeight, inputArea.width, boxHeight);
+                                EditorGUI.HelpBox(helpBoxRect, missScript.ToString(), MessageType.Error);
+                                AddSpace(boxHeight);
+                                AddSpace();
+                            }
+                        }
+                    }
                 }
                 if (dataIndex < dataCopy.Count - 1)
                 {
@@ -282,6 +331,7 @@ namespace Sora.Tools.CSVLoader.Editor
             }
             var createEnable = generateDataMap.Count > 0;
             foreach (var data in generateDataMap.Values) createEnable &= data.prepareComplete;
+            createEnable &= !createError;
             EditorGUI.BeginDisabledGroup(!createEnable);
             if (GUI.Button(generateButtonRect, "GO!")) GenerateResource();
             EditorGUI.EndDisabledGroup();
@@ -306,12 +356,12 @@ namespace Sora.Tools.CSVLoader.Editor
             }
             #endregion 预览区域
         }
-        private void AddHeight(int space)
+        private void AddHeight(float space)
         {
             inputHeight += LINE_HEIGHT;
             inputHeight += space;
         }
-        private void AddSpace(int height = 1) => inputHeight += height;
+        private void AddSpace(float height = 1) => inputHeight += height;
         /// <summary>
         /// 创建脚本
         /// c#脚本与ScriptObject脚本
@@ -361,7 +411,7 @@ namespace Sora.Tools.CSVLoader.Editor
                 var generateDataList = new List<GenerateData>();
                 foreach (var dataRecorder in generateDataMap.Values)
                 {
-                    var generateData = new GenerateData(0);
+                    var generateData = new GenerateData();
                     generateData.loadFilePath = dataRecorder.loadFilePath;
                     generateData.resourceFilePath = dataRecorder.resourceFilePath;
                     generateDataList.Add(generateData);
@@ -459,7 +509,7 @@ namespace Sora.Tools.CSVLoader.Editor
                     var generateDataMap = new List<GenerateData>();
                     foreach (var dataRecorder in dataRecorderMap)
                     {
-                        var generateData = new GenerateData(0);
+                        var generateData = new GenerateData();
                         generateData.loadFilePath = dataRecorder.loadFilePath;
                         generateData.resourceFilePath = dataRecorder.resourceFilePath;
                         generateDataMap.Add(generateData);

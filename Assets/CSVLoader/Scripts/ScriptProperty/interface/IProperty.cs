@@ -8,7 +8,7 @@ namespace Sora.Tools.CSVLoader
     public interface IProperty
     {
         /// <summary>
-        /// 属性值的类型
+        /// 属性值真实类型
         /// </summary>
         /// <value></value>
         Type propertyValueType { get; }
@@ -45,10 +45,5 @@ namespace Sora.Tools.CSVLoader
         /// </summary>
         /// <param name="value"></param>
         void SetPropertyValue(RawData value);
-    }
-
-    public interface IProperty<TValue> : IProperty
-    {
-        TValue Value { get; }
     }
 }

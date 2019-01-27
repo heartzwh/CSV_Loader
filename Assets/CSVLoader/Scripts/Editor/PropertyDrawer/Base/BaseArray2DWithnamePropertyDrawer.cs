@@ -26,8 +26,8 @@ namespace Sora.Tools.CSVLoader.Editor
             else namelabelWidth = itemWidth;
             namelabelWidth = Mathf.Clamp(namelabelWidth, 0, FieldMaxiWidth);
             itemWidth = Mathf.Clamp(itemWidth, 0, FieldMaxiWidth);
-            width = property.FindPropertyRelative("width").intValue - 1;
-            height = property.FindPropertyRelative("height").intValue - 1;
+            width = property.FindPropertyRelative("width").intValue;
+            height = property.FindPropertyRelative("height").intValue;
             rowNames = property.FindPropertyRelative("rowNames");
             columnNames = property.FindPropertyRelative("columnNames");
             var scrollViewFlag = DisplayScrollView(itemWidth);

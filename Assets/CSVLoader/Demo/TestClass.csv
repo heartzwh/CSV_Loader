@@ -1,0 +1,10 @@
+@start,Sora.Tools.CSVLoader.TestClass,base
+string#name,@Sora.Tools.CSVLoader.TestClassBinding#bindin#bindingKey
+name1,a1
+name2,a2
+name3,
+@end
+
+-@start,Sora.Tools.CSVLoader.TestEnum,enum
+A,B,C
+-@end

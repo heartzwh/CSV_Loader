@@ -1,14 +1,10 @@
 //Author: sora
 
 using System;
-using UnityEngine;
 
 namespace Sora.Tools.CSVLoader
 {
-    /// <summary>
-    /// csv属性基类
-    /// </summary>
-    public abstract class BaseProperty<TValue> : IProperty
+    public class DynamicProperty : IProperty
     {
         #region constructor
 
@@ -21,39 +17,46 @@ namespace Sora.Tools.CSVLoader
 
 
         #region property
-        public Type propertyValueType { get; protected set; }
+        public Type propertyValueType { get { return Type.GetType(dynamicTypeFullname); } }
 
         public RawData propertyRawData { get; private set; }
 
         public string propertyContent { get; private set; }
 
         public string propertyName { get; private set; }
-        
+
         public string[] propertySetting { get; private set; }
+
         /// <summary>
-        /// 属性值
+        /// 类型全名
         /// </summary>
         /// <value></value>
-        public TValue Value { get { return propertyValue; } }
+        public string dynamicTypeName { get; private set; }
         /// <summary>
-        /// 属性值.
-        /// Editor中调用
+        /// 类型全名
         /// </summary>
-        public TValue propertyValue;
+        /// <value></value>
+        public string dynamicTypeFullname { get; private set; }
+        public string key { get; private set; }
         #endregion
 
 
         #region public method
-        public virtual void InitProperty(string[] propertySetting, RawData sourceData)
+        public void InitProperty(string[] propertySetting, RawData sourceData)
         {
-            propertyValueType = typeof(TValue);
+            dynamicTypeFullname = propertySetting[0].Replace("@", "");
+            dynamicTypeName = dynamicTypeFullname.Substring(dynamicTypeFullname.LastIndexOf('.') + 1);
             propertyRawData = sourceData;
             this.propertySetting = new string[propertySetting.Length];
             Array.Copy(propertySetting, this.propertySetting, propertySetting.Length);
             propertyName = propertySetting[1];
-            propertyContent = $"public {this.GetType().FullName} {propertyName};";
+            propertyContent = $"public {dynamicTypeFullname} {propertyName};";
+            key = propertySetting[2];
         }
-        public abstract void SetPropertyValue(RawData value);
+        public void SetPropertyValue(RawData value)
+        {
+
+        }
         #endregion
 
 
@@ -70,5 +73,6 @@ namespace Sora.Tools.CSVLoader
         #region static
 
         #endregion
+
     }
 }

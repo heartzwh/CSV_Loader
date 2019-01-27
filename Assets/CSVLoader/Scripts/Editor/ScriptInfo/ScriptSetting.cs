@@ -38,30 +38,30 @@ namespace Sora.Tools.CSVLoader.Editor
         /// 脚本命名空间
         /// </summary>
         /// <value></value>
-        public string namespaceName;
+        public readonly string namespaceName;
         /// <summary>
         /// 脚本名称
         /// </summary>
         /// <value></value>
-        public string scriptName;
+        public readonly string scriptName;
         /// <summary>
         /// 资源脚本名称
         /// </summary>
-        public string scriptAssetName;
+        public readonly string scriptAssetName;
         /// <summary>
         /// 脚本全名
         /// </summary>
-        public string scriptFullname;
+        public readonly string scriptFullname;
         /// <summary>
         /// 资源脚本全名
         /// </summary>
-        public string scriptAssetFullName;
-        public GenerateData generateData;
+        public readonly string scriptAssetFullName;
+        public readonly GenerateData generateData;
         /// <summary>
         /// ScriptObject 中数据排列的方式
         /// </summary>
         /// <value></value>
-        public ScriptObjectDataType scriptObjectDataType { get; private set; }
+        public readonly ScriptObjectDataType scriptObjectDataType;
         #endregion
 
 

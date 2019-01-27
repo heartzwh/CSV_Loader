@@ -6,6 +6,7 @@ namespace Sora.Tools.CSVLoader
 {
     public static class Helper
     {
+        public const string ATTACHED_MARK = "attached";
         public const char SPLIT = ',';
         public const char SETTING_SPLIT = '#';
         private static string dataPath = "";
