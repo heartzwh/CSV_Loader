@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEditor;
 
@@ -35,17 +36,61 @@ namespace Sora.Tools.CSVLoader.Editor
             /* 获取 generateData.scriptData.scriptRawData.height 可以知道整个属性中有多个条属性值 */
             for (var dataIndex = 1; dataIndex < generateData.scriptData.scriptRawData.height; dataIndex++)
             {
-                /* 添加数据的脚本类 */
-                // UnityEngine.Debug.Log(generateData.scriptSetting.scriptFullname);
-                var script = assembly.CreateInstance(generateData.scriptSetting.scriptFullname);
-                var scriptType = script.GetType();
-                foreach (var field in script.GetType().GetFields())
+                var script = CreateScript(generateData, generateData.scriptSetting.scriptFullname, getPropertyValueIndex);
+                getPropertyValueIndex++;
+                dataSource.Add(script);
+            }
+            /* 创建的 ScriptableObjectAsset ,添加所有创建的数据 */
+            var scriptAssetSetDataMethod = generateData.scriptAssetData.assetObject.GetType().GetMethod(METHOD_NAME_SETDATA);
+            scriptAssetSetDataMethod.Invoke(generateData.scriptAssetData.assetObject, new object[] { dataSource });
+        }
+
+        public object CreateScript(GenerateData generateData, string scriptFullname, int valueIndex)
+        {
+            var assembly = CSVLoaderWindow.window.assembly;
+            /* 添加数据的脚本类 */
+            // UnityEngine.Debug.Log(scriptFullname);
+            var script = assembly.CreateInstance(scriptFullname);
+            var scriptType = script.GetType();
+            foreach (var field in script.GetType().GetFields())
+            {
+                var recordProperty = generateData.scriptData.recordPropertyMap[field.Name];
+                // UnityEngine.Debug.Log("FullName " + recordProperty.propertyType.FullName + " " + field.Name + " " + recordProperty.propertyRawData[0, valueIndex]);
+                /* Field: IProperty类,所以需要创建 */
+                object fieldScript = null;
+                if (recordProperty is DynamicProperty)
                 {
-                    /* 获取加载时保存的数据 */
-                    var recordProperty = generateData.scriptData.recordPropertyMap[field.Name];
-                    // UnityEngine.Debug.Log("FullName " + recordProperty.GetType().FullName + " " + field.Name + " " + recordProperty.propertyRawData[0, getPropertyValueIndex]);
-                    /* Field: IProperty类,所以需要创建 */
-                    var fieldScript = assembly.CreateInstance(recordProperty.GetType().FullName);
+                    var dynamicProperty = recordProperty as DynamicProperty;
+                    /* 绑定数据key: 用于查找数据位置 */
+                    if (string.IsNullOrEmpty(dynamicProperty.bindinKey)) throw new System.Exception($"动态类\"{recordProperty.propertyType.FullName}\"未填写绑定数据key");
+                    var dynamicGenerateData = CSVLoaderWindow.window.generateDataMap.Values.First(g => g.scriptSetting.scriptFullname.Equals(recordProperty.propertyType.FullName));
+                    var dynamicRawDataKeys = dynamicGenerateData.scriptData.recordPropertyMap[dynamicProperty.bindinKey].propertyRawData;
+                    /* bindingIndex: 找到当前需要生成的类,对应的数据位置. */
+                    var bindingIndex = -1;
+                    /* 需要查找的数据的Key */
+                    var bindinKeyValue = recordProperty.propertyRawData[0, valueIndex];
+                    /* 未绑定对应的数据值,跳过 */
+                    if (!string.IsNullOrEmpty(bindinKeyValue))
+                    {
+                        for (var y = 0; y < dynamicRawDataKeys.height; y++)
+                        {
+                            var dynamicRawDataKey = dynamicRawDataKeys[0, y];
+                            if (dynamicRawDataKey.Equals(bindinKeyValue))
+                            {
+                                bindingIndex = y;
+                                break;
+                            }
+                        }
+                        if (bindingIndex.Equals(-1))
+                        {
+                            throw new System.Exception($"动态类\"{recordProperty.propertyType.FullName}\"找不到绑定Key\"{dynamicProperty.bindinKey}\"的对应值\"{bindinKeyValue}\"");
+                        }
+                        fieldScript = CreateScript(dynamicGenerateData, recordProperty.propertyType.FullName, bindingIndex);
+                    }
+                }
+                else
+                {
+                    fieldScript = assembly.CreateInstance(recordProperty.propertyType.FullName);
                     var fieldType = fieldScript.GetType();
                     /* fieldInitPropertyMethod: IProperty.InitProperty */
                     var fieldInitPropertyMethod = fieldType.GetMethod("InitProperty");
@@ -54,17 +99,13 @@ namespace Sora.Tools.CSVLoader.Editor
                     /* 调用 InitProperty 方法 */
                     fieldInitPropertyMethod.Invoke(fieldScript, new object[] { recordProperty.propertySetting, recordProperty.propertyRawData });
                     /* 根据属性占用数据范围,获取需要设置的值 */
-                    var setDataSource = recordProperty.propertyRawData.GetRangeRawData(new RawRange(getPropertyValueIndex, 0, recordProperty.propertyRawData.width, 1));
+                    var setDataSource = recordProperty.propertyRawData.GetRangeRawData(new RawRange(valueIndex, 0, recordProperty.propertyRawData.width, 1));
                     /* 调用 SetPropertyValue 方法 */
                     fieldSetPropertyValueMethod.Invoke(fieldScript, new object[] { setDataSource });
-                    scriptType.GetField(field.Name).SetValue(script, fieldScript);
                 }
-                getPropertyValueIndex++;
-                dataSource.Add(script);
+                scriptType.GetField(field.Name).SetValue(script, fieldScript);
             }
-            /* 创建的 ScriptableObjectAsset ,添加所有创建的数据 */
-            var scriptAssetSetDataMethod = generateData.scriptAssetData.assetObject.GetType().GetMethod(METHOD_NAME_SETDATA);
-            scriptAssetSetDataMethod.Invoke(generateData.scriptAssetData.assetObject, new object[] { dataSource });
+            return script;
         }
         #endregion
 

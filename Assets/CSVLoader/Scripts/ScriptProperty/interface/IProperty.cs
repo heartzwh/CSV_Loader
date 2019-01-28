@@ -8,7 +8,12 @@ namespace Sora.Tools.CSVLoader
     public interface IProperty
     {
         /// <summary>
-        /// 属性值真实类型
+        /// 属性类型
+        /// </summary>
+        /// <value></value>
+        Type propertyType { get; }
+        /// <summary>
+        /// 属性值类型
         /// </summary>
         /// <value></value>
         Type propertyValueType { get; }

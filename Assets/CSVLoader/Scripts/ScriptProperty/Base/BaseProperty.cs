@@ -21,6 +21,7 @@ namespace Sora.Tools.CSVLoader
 
 
         #region property
+        public Type propertyType { get; protected set; }
         public Type propertyValueType { get; protected set; }
 
         public RawData propertyRawData { get; private set; }
@@ -46,6 +47,7 @@ namespace Sora.Tools.CSVLoader
         #region public method
         public virtual void InitProperty(string[] propertySetting, RawData sourceData)
         {
+            propertyType = this.GetType();
             propertyValueType = typeof(TValue);
             propertyRawData = sourceData;
             this.propertySetting = new string[propertySetting.Length];

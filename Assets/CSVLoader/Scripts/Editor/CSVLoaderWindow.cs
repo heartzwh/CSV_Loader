@@ -23,7 +23,7 @@ namespace Sora.Tools.CSVLoader.Editor
         /// int: 创建id
         /// CreateData: 创建信息
         /// </summary>
-        private Dictionary<int, GenerateData> generateDataMap;
+        public Dictionary<int, GenerateData> generateDataMap { get; private set; }
         /// <summary>
         /// 输入窗口最小宽度
         /// </summary>
@@ -326,8 +326,8 @@ namespace Sora.Tools.CSVLoader.Editor
             var generateButtonRect = new Rect(addButtonRect.xMax + Margin, addButtonRect.y, buttonHalfWidth, BUTTON_HEIGHT);
             if (GUI.Button(addButtonRect, "+"))
             {
-                generateDataMap.Add(GenerateIndex, new GenerateData(GenerateIndex) { foldout = true });
-                GenerateIndex++;
+                var createIndex = GetIndex();
+                generateDataMap.Add(createIndex, new GenerateData(createIndex) { foldout = true });
             }
             var createEnable = generateDataMap.Count > 0;
             foreach (var data in generateDataMap.Values) createEnable &= data.prepareComplete;
@@ -394,8 +394,10 @@ namespace Sora.Tools.CSVLoader.Editor
                 foreach (var generateData in generateDataMap.Values)
                 {
                     var dataRecorder = new GenreateDataRecorder();
+                    dataRecorder.createIndex = generateData.createIndex;
                     dataRecorder.loadFilePath = generateData.loadFilePath;
                     dataRecorder.resourceFilePath = generateData.resourceFilePath;
+                    dataRecorder.foldout = generateData.foldout;
                     dataRecorderMap.Add(dataRecorder);
                 }
                 EditorPrefs.SetString("Data", SerializeToXml(dataRecorderMap));
@@ -462,12 +464,25 @@ namespace Sora.Tools.CSVLoader.Editor
             await Task.Delay(System.TimeSpan.FromSeconds(time));
             completeAction?.Invoke();
         }
+        private int GetIndex()
+        {
+            var index = 0;
+            var loop = false;
+            do
+            {
+                index = GenerateIndex;
+                loop = generateDataMap.ContainsKey(index);
+                GenerateIndex++;
+            }
+            while (loop);
+            return index;
+        }
         /// <summary>
         /// 将对象序列化为XML数据
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static string SerializeToXml(object obj)
+        private static string SerializeToXml(object obj)
         {
             MemoryStream stream = new MemoryStream();
             XmlSerializer xs = new XmlSerializer(obj.GetType());
@@ -482,7 +497,7 @@ namespace Sora.Tools.CSVLoader.Editor
         /// <typeparam name="T"></typeparam>
         /// <param name="data"></param>
         /// <returns></returns>
-        public static T DeserializeWithXml<T>(string dataStr)
+        private static T DeserializeWithXml<T>(string dataStr)
         {
             byte[] data = System.Text.Encoding.Default.GetBytes(dataStr);
             MemoryStream stream = new MemoryStream();
@@ -506,15 +521,16 @@ namespace Sora.Tools.CSVLoader.Editor
                 var dataRecorderMap = DeserializeWithXml<List<GenreateDataRecorder>>(data);
                 if (dataRecorderMap != null && dataRecorderMap.Count > 0)
                 {
-                    var generateDataMap = new List<GenerateData>();
+                    CSVLoaderWindow.window.generateDataMap = new Dictionary<int, GenerateData>();
+                    // var generateDataMap = new List<GenerateData>();
                     foreach (var dataRecorder in dataRecorderMap)
                     {
-                        var generateData = new GenerateData();
+                        var generateData = new GenerateData(dataRecorder.createIndex) { foldout = dataRecorder.foldout };
                         generateData.loadFilePath = dataRecorder.loadFilePath;
                         generateData.resourceFilePath = dataRecorder.resourceFilePath;
-                        generateDataMap.Add(generateData);
+                        CSVLoaderWindow.window.generateDataMap.Add(dataRecorder.createIndex, generateData);
                     }
-                    SetAssetData(generateDataMap);
+                    SetAssetData(CSVLoaderWindow.window.generateDataMap.Values.ToList());
                 }
             }
         }
@@ -554,7 +570,9 @@ namespace Sora.Tools.CSVLoader.Editor
     [System.Serializable]
     public class GenreateDataRecorder
     {
+        public int createIndex;
         public string loadFilePath;
         public string resourceFilePath;
+        public bool foldout;
     }
 }

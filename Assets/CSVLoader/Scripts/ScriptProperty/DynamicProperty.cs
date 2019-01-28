@@ -17,6 +17,7 @@ namespace Sora.Tools.CSVLoader
 
 
         #region property
+        public Type propertyType { get { return Type.GetType(dynamicTypeFullname); } }
         public Type propertyValueType { get { return Type.GetType(dynamicTypeFullname); } }
 
         public RawData propertyRawData { get; private set; }
@@ -37,7 +38,12 @@ namespace Sora.Tools.CSVLoader
         /// </summary>
         /// <value></value>
         public string dynamicTypeFullname { get; private set; }
-        public string key { get; private set; }
+        /// <summary>
+        /// 绑定Key
+        /// 绑定Key为了在对应的类中查找与该值相同的属性名,用该属性名中作为使用数据的依据
+        /// </summary>
+        /// <value></value>
+        public string bindinKey { get; private set; }
         #endregion
 
 
@@ -51,7 +57,7 @@ namespace Sora.Tools.CSVLoader
             Array.Copy(propertySetting, this.propertySetting, propertySetting.Length);
             propertyName = propertySetting[1];
             propertyContent = $"public {dynamicTypeFullname} {propertyName};";
-            key = propertySetting[2];
+            bindinKey = propertySetting[2];
         }
         public void SetPropertyValue(RawData value)
         {
