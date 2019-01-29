@@ -8,7 +8,7 @@ namespace Sora.Tools.CSVLoader
     /// <summary>
     /// csv属性基类
     /// </summary>
-    public abstract class BaseProperty<TValue> : IProperty
+    public abstract class BaseProperty<TValue> : IProperty<TValue>
     {
         #region constructor
 
