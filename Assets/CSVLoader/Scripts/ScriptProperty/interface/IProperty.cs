@@ -51,4 +51,9 @@ namespace Sora.Tools.CSVLoader
         /// <param name="value"></param>
         void SetPropertyValue(RawData value);
     }
+
+    public interface IProperty<TValue> : IProperty
+    {
+        TValue Value { get; }
+    }
 }
